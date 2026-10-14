@@ -11,11 +11,11 @@ Open-source 3D trekking viewer for **Mount Kilimanjaro's Marangu Route**, from M
 - Stage navigator (day-by-day segments) with camp orbit
 - Scrubbable SVG elevation profile synced to a marker on the 3D map
 - 40-second cinematic "Play / Trek" fly-through with live altitude, distance, O₂ and weather readouts
-- Responsive dark glass UI built with Flowbite Svelte (bottom drawer for stages on mobile)
+- "Field journal" UI: warm paper and ink panels, serif display type and a single ochre accent, built with Flowbite Svelte (itinerary becomes a bottom drawer on mobile)
 
 ## Stack
 
-SvelteKit 3 · Svelte 5 (runes) · TypeScript · Tailwind CSS v4 · Flowbite Svelte · MapLibre GL JS · lucide-svelte · pnpm
+SvelteKit 3 · Svelte 5 (runes) · TypeScript · Tailwind CSS v4 · Flowbite Svelte · MapLibre GL JS · lucide-svelte · Fraunces + Instrument Sans (self-hosted via Fontsource) · pnpm
 
 ## Getting started
 
@@ -34,7 +34,8 @@ pnpm build        # static SPA in ./build
 src/lib/data/maranguRoute.ts   waypoints, GeoJSON trail, elevation profile
 src/lib/data/route.ts          distance/interpolation helpers, stages, oxygen, weather
 src/lib/state/trek.svelte.ts   shared rune state (scrub, playback, camera commands)
-src/lib/components/            Map3D, HeaderBar, StatsHud, StageSelector, ElevationChart, ...
+src/lib/components/            Map3D, Sidebar, Masthead, StageSelector, Readout, ElevationChart, ...
+src/routes/layout.css          design tokens (paper, ink, ochre) and type
 ```
 
 ## Data sources and attribution
