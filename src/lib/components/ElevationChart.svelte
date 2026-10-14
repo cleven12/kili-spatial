@@ -126,6 +126,7 @@
 		{#each waypointMarks as m (m.wp.id)}
 			<line x1={x(m.km)} x2={x(m.km)} y1={y(m.wp.elevation)} y2={y(Y_MIN)} stroke="white" stroke-opacity="0.12" />
 			<circle cx={x(m.km)} cy={y(m.wp.elevation)} r="3.5" fill="#090d16" stroke="#6ee7b7" stroke-width="1.5" />
+			{#if m.km < TOTAL_KM - 3 || m.wp.id === 'uhuru-peak'}
 			<text
 				x={Math.min(x(m.km), width - PAD.r - 4)}
 				y={height - 8}
@@ -134,6 +135,7 @@
 			>
 				{m.wp.name}
 			</text>
+			{/if}
 		{/each}
 
 		{#if cursor}
