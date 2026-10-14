@@ -6,17 +6,21 @@
 	const PAD = { l: 44, r: 16, t: 14, b: 26 };
 	const Y_MIN = 1500;
 	const Y_MAX = 6100;
+	// Vegetation zone boundaries, drawn as labelled rules like a printed section.
 	const ZONES = [
-		{ from: 1500, to: 2800, label: 'Rainforest', color: '#10b981' },
-		{ from: 2800, to: 4000, label: 'Moorland', color: '#84cc16' },
-		{ from: 4000, to: 5000, label: 'Alpine desert', color: '#f59e0b' },
-		{ from: 5000, to: 6100, label: 'Summit', color: '#93c5fd' }
+		{ at: 2800, label: 'Rainforest ↓' },
+		{ at: 4000, label: 'Moorland ↓' },
+		{ at: 5000, label: 'Alpine desert ↓' }
 	];
 	const Y_TICKS = [2000, 3000, 4000, 5000, 5895];
 
 	let width = $state(800);
 	let height = $state(180);
 	let svg: SVGSVGElement;
+
+	// On narrow embeds only label the start, the halfway camp and the summit.
+	const compact = $derived(width < 560);
+	const KEY_LABELS = ['marangu-gate', 'horombo-hut', 'uhuru-peak'];
 
 	const plotW = $derived(Math.max(1, width - PAD.l - PAD.r));
 	const plotH = $derived(Math.max(1, height - PAD.t - PAD.b));
@@ -91,68 +95,58 @@
 		onkeydown={onkey}
 	>
 		<defs>
-			<linearGradient id="area-fill" x1="0" y1="0" x2="0" y2="1">
-				<stop offset="0%" stop-color="#34d399" stop-opacity="0.55" />
-				<stop offset="100%" stop-color="#34d399" stop-opacity="0.02" />
-			</linearGradient>
-			<linearGradient id="line-stroke" x1="0" y1="0" x2="1" y2="0">
-				<stop offset="0%" stop-color="#10b981" />
-				<stop offset="100%" stop-color="#fbbf24" />
-			</linearGradient>
+			<pattern id="hatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+				<line x1="0" y1="0" x2="0" y2="5" stroke="#1f1b16" stroke-opacity="0.16" stroke-width="1" />
+			</pattern>
 			<clipPath id="plot-clip"><rect x={PAD.l} y={PAD.t} width={plotW} height={plotH} /></clipPath>
 		</defs>
 
-		{#each ZONES as z (z.label)}
-			<rect
-				x={PAD.l}
-				y={y(Math.min(z.to, Y_MAX))}
-				width={plotW}
-				height={y(z.from) - y(Math.min(z.to, Y_MAX))}
-				fill={z.color}
-				opacity="0.06"
-			/>
-		{/each}
-
 		{#each Y_TICKS as t (t)}
-			<line x1={PAD.l} x2={width - PAD.r} y1={y(t)} y2={y(t)} stroke="white" stroke-opacity="0.08" stroke-dasharray="3 4" />
-			<text x={PAD.l - 6} y={y(t) + 3} text-anchor="end" class="fill-white/50 font-mono text-[9px]">
+			<line x1={PAD.l} x2={width - PAD.r} y1={y(t)} y2={y(t)} stroke="#d3c8b2" stroke-width="1" />
+			<text x={PAD.l - 6} y={y(t) + 3.5} text-anchor="end" class="fill-ink-soft text-[10px]">
 				{t.toLocaleString()}
 			</text>
 		{/each}
 
-		<path d={areaPath} fill="url(#area-fill)" clip-path="url(#plot-clip)" />
-		<path d={linePath} fill="none" stroke="url(#line-stroke)" stroke-width="2.5" stroke-linejoin="round" />
+		{#each ZONES as z (z.at)}
+			<line x1={PAD.l} x2={width - PAD.r} y1={y(z.at)} y2={y(z.at)} stroke="#62594b" stroke-opacity="0.5" stroke-dasharray="2 4" />
+			<text x={width - PAD.r - 2} y={y(z.at) - 4} text-anchor="end" class="display fill-ink-soft text-[10px] italic">
+				{z.label}
+			</text>
+		{/each}
+
+		<path d={areaPath} fill="url(#hatch)" clip-path="url(#plot-clip)" />
+		<path d={linePath} fill="none" stroke="#1f1b16" stroke-width="1.75" stroke-linejoin="round" />
 
 		{#each waypointMarks as m (m.wp.id)}
-			<line x1={x(m.km)} x2={x(m.km)} y1={y(m.wp.elevation)} y2={y(Y_MIN)} stroke="white" stroke-opacity="0.12" />
-			<circle cx={x(m.km)} cy={y(m.wp.elevation)} r="3.5" fill="#090d16" stroke="#6ee7b7" stroke-width="1.5" />
-			{#if m.km < TOTAL_KM - 3 || m.wp.id === 'uhuru-peak'}
-			<text
-				x={Math.min(x(m.km), width - PAD.r - 4)}
-				y={height - 8}
-				text-anchor={m.km > TOTAL_KM * 0.9 ? 'end' : m.km < 1 ? 'start' : 'middle'}
-				class="fill-white/60 text-[9px]"
-			>
-				{m.wp.name}
-			</text>
+			<line x1={x(m.km)} x2={x(m.km)} y1={y(m.wp.elevation)} y2={y(Y_MIN)} stroke="#1f1b16" stroke-opacity="0.25" />
+			<circle cx={x(m.km)} cy={y(m.wp.elevation)} r="3.5" fill="#f4eee2" stroke="#1f1b16" stroke-width="1.5" />
+			{#if (m.km < TOTAL_KM - 3 || m.wp.id === 'uhuru-peak') && (!compact || KEY_LABELS.includes(m.wp.id))}
+				<text
+					x={Math.min(x(m.km), width - PAD.r - 4)}
+					y={height - 8}
+					text-anchor={m.km > TOTAL_KM * 0.9 ? 'end' : m.km < 1 ? 'start' : 'middle'}
+					class="fill-ink text-[10px]"
+				>
+					{m.wp.name}
+				</text>
 			{/if}
 		{/each}
 
 		{#if cursor}
-			<line x1={cursor.cx} x2={cursor.cx} y1={PAD.t} y2={PAD.t + plotH} stroke="#fbbf24" stroke-opacity="0.7" />
-			<circle cx={cursor.cx} cy={cursor.cy} r="9" fill="#fbbf24" opacity="0.25" />
-			<circle cx={cursor.cx} cy={cursor.cy} r="4.5" fill="#fbbf24" stroke="white" stroke-width="1.5" />
+			<line x1={cursor.cx} x2={cursor.cx} y1={PAD.t} y2={PAD.t + plotH} stroke="#c4571f" stroke-width="1.5" />
+			<circle cx={cursor.cx} cy={cursor.cy} r="5" fill="#c4571f" stroke="#f4eee2" stroke-width="2" />
 		{/if}
 	</svg>
 
 	{#if cursor}
 		<div
-			class="glass pointer-events-none absolute top-1 rounded-lg px-2.5 py-1.5 font-mono text-[11px] whitespace-nowrap text-white"
-			style="left: {Math.min(Math.max(cursor.cx + 12, PAD.l), width - 190)}px"
+			class="pointer-events-none absolute top-1 rounded-[2px] bg-ink px-2.5 py-1.5 text-xs whitespace-nowrap text-paper tabular-nums"
+			style="left: {Math.min(Math.max(cursor.cx + 12, PAD.l), width - 200)}px"
 		>
-			<span class="text-amber-300">{Math.round(cursor.ele).toLocaleString()} m</span>
-			<span class="text-white/50"> · </span>{cursor.km.toFixed(1)} km
-			<span class="text-white/50"> · </span>O₂ {oxygenAtElevation(cursor.ele)}%
+			<strong class="font-semibold">{Math.round(cursor.ele).toLocaleString()} m</strong>
+			<span class="text-paper/60"> · </span>{cursor.km.toFixed(1)} km
+			<span class="text-paper/60"> · </span>{oxygenAtElevation(cursor.ele)}% O₂
 		</div>
 	{/if}
 </div>
