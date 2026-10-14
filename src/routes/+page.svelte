@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Button, Tooltip } from 'flowbite-svelte';
 	import { ChevronDown, ChevronUp } from 'lucide-svelte';
 	import Map3D from '#lib/components/Map3D.svelte';
 	import HeaderBar from '#lib/components/HeaderBar.svelte';
@@ -39,9 +40,11 @@
 					<span class="hidden text-[11px] tracking-[0.2em] text-white/50 uppercase sm:inline">
 						Ascent profile · distance vs elevation
 					</span>
-					<button
-						type="button"
-						class="rounded-lg p-1.5 text-white/60 hover:bg-white/10 hover:text-white"
+					<Button
+						id="chart-toggle"
+						color="alternative"
+						size="xs"
+						class="size-8 border-0 bg-transparent p-0"
 						aria-label={chartOpen ? 'Collapse elevation profile' : 'Expand elevation profile'}
 						aria-expanded={chartOpen}
 						onclick={() => (chartOpen = !chartOpen)}
@@ -51,7 +54,8 @@
 						{:else}
 							<ChevronUp class="size-4" aria-hidden="true" />
 						{/if}
-					</button>
+					</Button>
+					<Tooltip triggeredBy="#chart-toggle">{chartOpen ? 'Collapse' : 'Expand'} profile</Tooltip>
 				</div>
 			</div>
 			{#if chartOpen}
