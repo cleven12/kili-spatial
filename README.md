@@ -1,54 +1,60 @@
-# sv
+# KiliSpatial
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Open-source 3D trekking viewer for **Mount Kilimanjaro's Marangu Route**, from Marangu Gate (1,860 m) to Uhuru Peak (5,895 m).
 
-## Creating a project
+> **MVP.** Not for navigation. The trail is an approximation, and weather and oxygen values are simulated estimates derived from altitude. Trek with a licensed guide and official maps.
 
-If you're seeing this, you've probably already done this step. Congrats!
+## Features
 
-```sh
-# create a new project
-npx sv create my-app
-```
+- Full 3D terrain (MapLibre GL JS) with a glowing, terrain-draped route
+- Altitude-badge markers for each hut and summit point, with cinematic fly-to
+- Stage navigator (day-by-day segments) with camp orbit
+- Scrubbable SVG elevation profile synced to a marker on the 3D map
+- 40-second cinematic "Play / Trek" fly-through with live altitude, distance, O₂ and weather readouts
+- Responsive dark glass UI built with Flowbite Svelte (bottom drawer for stages on mobile)
 
-To recreate this project with the same configuration:
+## Stack
 
-```sh
-# recreate this project
-npx sv@1.1.1 create --template minimal --types ts --add tailwindcss="plugins:none" sveltekit-adapter="adapter:static" --install npm .
-```
+SvelteKit 3 · Svelte 5 (runes) · TypeScript · Tailwind CSS v4 · Flowbite Svelte · MapLibre GL JS · lucide-svelte · pnpm
 
-## Adding features
+## Getting started
 
-Add features to your project with `sv add`:
-
-```sh
-npx sv add
-```
-
-For example, to add Tailwind CSS:
+Requires Node 22.17+ and [pnpm](https://pnpm.io).
 
 ```sh
-npx sv add tailwindcss
+pnpm install
+pnpm dev          # http://localhost:5173
+pnpm check        # svelte-check, must stay at 0 errors / 0 warnings
+pnpm build        # static SPA in ./build
 ```
 
-## Developing
+## Project layout
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+```
+src/lib/data/maranguRoute.ts   waypoints, GeoJSON trail, elevation profile
+src/lib/data/route.ts          distance/interpolation helpers, stages, oxygen, weather
+src/lib/state/trek.svelte.ts   shared rune state (scrub, playback, camera commands)
+src/lib/components/            Map3D, HeaderBar, StatsHud, StageSelector, ElevationChart, ...
 ```
 
-## Building
+## Data sources and attribution
 
-To create a production version of your app:
+- Imagery: © Esri, Maxar, Earthstar Geographics (Esri World Imagery)
+- Terrain: Mapzen / AWS Terrain Tiles (Terrarium)
 
-```sh
-npm run build
-```
+Both are loaded from third-party tile servers and are subject to their own terms. For production or high-traffic use, review those terms and consider swapping in your own tile provider (`style` in `src/lib/components/Map3D.svelte`).
 
-You can preview the production build with `npm run preview`.
+## Roadmap
+
+- Route JSON schema and loader (`?route=` / `?src=`), so any route can be shown
+- `/embed` mode with `postMessage` sync for use inside itinerary pages
+- Real GPX-based trail geometry
+- Performance pass (shared terrain source, throttled progress updates, mobile quality cap)
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## License
+
+[MIT](LICENSE)
