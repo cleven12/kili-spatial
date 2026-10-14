@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button, Progressbar, Tooltip } from 'flowbite-svelte';
+	import { Button } from 'flowbite-svelte';
 	import { Play, Pause, RotateCcw } from 'lucide-svelte';
 	import { TOTAL_KM } from '#lib/data/route.ts';
 	import { trek } from '#lib/state/trek.svelte.ts';
@@ -7,35 +7,28 @@
 	const atEnd = $derived(trek.scrubKm !== null && trek.scrubKm >= TOTAL_KM - 0.05);
 </script>
 
-<div class="flex items-center gap-3">
+<div class="flex items-center gap-4">
 	<Button
-		id="play-btn"
-		pill
-		color="primary"
-		class="gap-2 shadow-[0_0_24px_rgba(16,185,129,0.45)]"
+		color="dark"
+		class="gap-2 rounded-sm bg-ink px-4 py-2 text-sm font-medium text-paper hover:bg-ochre focus-within:ring-0 dark:bg-ink dark:hover:bg-ochre"
 		disabled={!trek.mapReady}
 		onclick={() => trek.togglePlay()}
 	>
 		{#if trek.playing}
 			<Pause class="size-4" aria-hidden="true" /> Pause
 		{:else if atEnd}
-			<RotateCcw class="size-4" aria-hidden="true" /> Replay trek
+			<RotateCcw class="size-4" aria-hidden="true" /> Replay
 		{:else}
-			<Play class="size-4" aria-hidden="true" /> {trek.scrubKm ? 'Resume' : 'Play / Trek'}
+			<Play class="size-4" aria-hidden="true" /> {trek.scrubKm ? 'Resume' : 'Walk the route'}
 		{/if}
 	</Button>
-	<Tooltip triggeredBy="#play-btn">Cinematic fly-through from Marangu Gate to Uhuru Peak</Tooltip>
 
-	<span class="hidden font-mono text-xs text-gray-400 tabular-nums sm:block">
-		{(trek.scrubKm ?? 0).toFixed(1)} / {TOTAL_KM.toFixed(1)} km
-	</span>
-	<Progressbar
-		progress={trek.progress * 100}
-		animate={false}
-		tweenDuration={0}
-		size="h-1.5"
-		color="primary"
-		class="hidden w-28 sm:block"
-		aria-label="Trek progress"
-	/>
+	<div class="hidden items-center gap-3 sm:flex">
+		<span class="text-sm text-ink-soft tabular-nums">
+			{(trek.scrubKm ?? 0).toFixed(1)} of {TOTAL_KM.toFixed(1)} km
+		</span>
+		<div class="h-[3px] w-28 bg-rule" role="progressbar" aria-label="Trek progress" aria-valuenow={Math.round(trek.progress * 100)} aria-valuemin={0} aria-valuemax={100}>
+			<div class="h-full bg-ochre" style="width: {trek.progress * 100}%"></div>
+		</div>
+	</div>
 </div>

@@ -1,76 +1,61 @@
 <script lang="ts">
-	import { Badge, Button, Drawer } from 'flowbite-svelte';
-	import { Route, ChevronRight, ArrowDownRight } from 'lucide-svelte';
 	import { STAGES } from '#lib/data/route.ts';
 	import { trek } from '#lib/state/trek.svelte.ts';
 
-	let drawerOpen = $state(false);
+	let { onpick }: { onpick?: () => void } = $props();
+
+	const numerals = ['I', 'II', 'III', 'IV', 'V', 'VI'];
 
 	function pick(id: number) {
 		trek.focusStage(id);
-		drawerOpen = false;
+		onpick?.();
 	}
 </script>
 
-{#snippet stageList()}
-	<div class="flex flex-col gap-1">
+<nav aria-label="Itinerary" class="shrink-0">
+	<div class="flex items-baseline justify-between px-5 pb-2">
+		<h2 class="display text-lg font-medium">Itinerary</h2>
+		<button
+			type="button"
+			class="text-sm text-ink-soft underline decoration-rule underline-offset-4 hover:text-ochre"
+			onclick={() => {
+				trek.showOverview();
+				onpick?.();
+			}}
+		>
+			{trek.activeStage !== null ? 'Show whole route' : 'Reset view'}
+		</button>
+	</div>
+
+	<ol class="border-t border-rule">
 		{#each STAGES as stage (stage.id)}
 			{@const active = trek.activeStage === stage.id}
-			<button
-				type="button"
-				class="group flex items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition {active
-					? 'border-primary-400/50 bg-primary-500/15'
-					: 'border-transparent hover:bg-white/5'}"
-				aria-pressed={active}
-				onclick={() => pick(stage.id)}
-			>
-				<Badge color={active ? 'primary' : 'gray'} class="size-8 shrink-0 justify-center font-mono">
-					D{stage.day}
-				</Badge>
-				<span class="min-w-0 flex-1">
-					<span class="block truncate text-sm font-medium text-white">{stage.title}</span>
-					<span class="block text-[11px] text-gray-400">
-						{stage.distanceKm.toFixed(1)} km · +{stage.gainM.toLocaleString()} m · {stage.to.elevation.toLocaleString()} m
+			<li class="border-b border-rule">
+				<button
+					type="button"
+					class="flex w-full items-baseline gap-4 border-l-[3px] px-5 py-2.5 text-left transition-colors {active
+						? 'border-ochre bg-paper-2'
+						: 'border-transparent hover:bg-paper-2/60'}"
+					aria-current={active ? 'step' : undefined}
+					onclick={() => pick(stage.id)}
+				>
+					<span class="display w-7 shrink-0 text-base text-ink-soft italic">{numerals[stage.id - 1]}</span>
+					<span class="min-w-0 flex-1">
+						<span class="display block text-[15px] leading-snug font-medium">
+							{stage.from.name} <span class="text-ink-soft">→</span> {stage.to.name}
+						</span>
+						<span class="mt-0.5 block text-[13px] text-ink-soft tabular-nums">
+							{stage.distanceKm.toFixed(1)} km · +{stage.gainM.toLocaleString()} m · to {stage.to.elevation.toLocaleString()} m
+						</span>
 					</span>
-				</span>
-				<ChevronRight
-					class="size-4 shrink-0 text-white/30 transition group-hover:translate-x-0.5 group-hover:text-white/70"
-					aria-hidden="true"
-				/>
-			</button>
+				</button>
+			</li>
 		{/each}
-
-		<div class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-gray-500">
-			<Badge color="gray" class="size-8 shrink-0 justify-center font-mono opacity-50">D6</Badge>
-			<span class="min-w-0 flex-1">
-				<span class="block text-sm font-medium">Descent → Marangu Gate</span>
-				<span class="block text-[11px]">Same trail down · not on ascent profile</span>
+		<li class="flex items-baseline gap-4 border-b border-rule px-5 py-2.5 pl-[1.4rem] text-ink-soft/70">
+			<span class="display w-7 shrink-0 text-base italic">{numerals[5]}</span>
+			<span>
+				<span class="display block text-[15px] leading-snug">Descent to Marangu Gate</span>
 			</span>
-			<ArrowDownRight class="size-4 shrink-0 opacity-40" aria-hidden="true" />
-		</div>
-	</div>
-{/snippet}
-
-<!-- Mobile: bottom drawer -->
-<Button color="alternative" size="sm" class="glass pointer-events-auto gap-2 md:hidden" onclick={() => (drawerOpen = true)}>
-	<Route class="size-4 text-primary-400" aria-hidden="true" /> Stages
-</Button>
-<Drawer bind:open={drawerOpen} placement="bottom" class="p-3">
-	<div class="mb-2 flex items-center justify-between px-1">
-		<h2 class="text-xs font-semibold tracking-[0.2em] text-gray-400 uppercase">Stage Navigator</h2>
-	</div>
-	{@render stageList()}
-</Drawer>
-
-<!-- Desktop: floating panel -->
-<nav aria-label="Trek stages" class="glass pointer-events-auto hidden w-72 flex-col gap-1 rounded-2xl p-2 md:flex">
-	<div class="flex items-center justify-between px-2 pt-1 pb-2">
-		<h2 class="text-[11px] font-semibold tracking-[0.2em] text-gray-400 uppercase">Stage Navigator</h2>
-		{#if trek.activeStage !== null}
-			<Button color="alternative" size="xs" class="border-0 bg-transparent px-2 py-0.5 text-primary-300" onclick={() => trek.showOverview()}>
-				Show all
-			</Button>
-		{/if}
-	</div>
-	{@render stageList()}
+		</li>
+	</ol>
 </nav>
