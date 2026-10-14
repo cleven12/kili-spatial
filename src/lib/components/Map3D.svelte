@@ -339,7 +339,7 @@
 		const speed = TOTAL_KM / FLY_SECONDS;
 
 		const tick = (now: number) => {
-			const dt = Math.min(0.1, (now - last) / 1000);
+			const dt = Math.min(0.5, (now - last) / 1000);
 			last = now;
 			km = Math.min(TOTAL_KM, km + speed * dt);
 			const p = pointAtDistance(km);
@@ -365,7 +365,15 @@
 	});
 </script>
 
-<div bind:this={container} class="absolute inset-0" role="application" aria-label="3D terrain map of Mount Kilimanjaro"></div>
+<!-- MapLibre's CSS forces position:relative on its container, so size it via a wrapper. -->
+<div class="absolute inset-0">
+	<div
+		bind:this={container}
+		class="size-full"
+		role="application"
+		aria-label="3D terrain map of Mount Kilimanjaro"
+	></div>
+</div>
 
 {#if !ready}
 	<div class="absolute inset-0 grid place-items-center bg-[#090d16]">
