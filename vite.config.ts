@@ -4,6 +4,8 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
+	// maplibre-gl v6 loads a sibling worker module that dep pre-bundling does not copy.
+	optimizeDeps: { exclude: ['maplibre-gl'] },
 	plugins: [
 		tailwindcss(),
 		sveltekit({
