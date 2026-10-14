@@ -68,15 +68,15 @@
 			}
 		},
 		layers: [
-			{ id: 'bg', type: 'background', paint: { 'background-color': '#090d16' } },
+			{ id: 'bg', type: 'background', paint: { 'background-color': '#ebe3d2' } },
 			{
 				id: 'imagery',
 				type: 'raster',
 				source: 'imagery',
 				paint: {
-					'raster-brightness-max': 0.72,
-					'raster-saturation': -0.15,
-					'raster-contrast': 0.15
+					'raster-brightness-max': 0.86,
+					'raster-saturation': -0.4,
+					'raster-contrast': 0.1
 				}
 			},
 			{
@@ -84,17 +84,17 @@
 				type: 'hillshade',
 				source: 'hillshadeSource',
 				paint: {
-					'hillshade-exaggeration': 0.55,
-					'hillshade-shadow-color': '#02050c',
-					'hillshade-highlight-color': '#9fb4d6',
-					'hillshade-accent-color': '#0b1220'
+					'hillshade-exaggeration': 0.5,
+					'hillshade-shadow-color': '#2b2418',
+					'hillshade-highlight-color': '#fff6e3',
+					'hillshade-accent-color': '#3a2f1e'
 				}
 			}
 		],
 		sky: {
-			'sky-color': '#0a1330',
-			'horizon-color': '#27406b',
-			'fog-color': '#0d1526',
+			'sky-color': '#a9bcc8',
+			'horizon-color': '#efe6d3',
+			'fog-color': '#e6dccb',
 			'sky-horizon-blend': 0.6,
 			'horizon-fog-blend': 0.75,
 			'fog-ground-blend': 0.35,
@@ -161,40 +161,43 @@
 		m.addSource('stage', { type: 'geojson', data: empty });
 
 		const round = { 'line-cap': 'round', 'line-join': 'round' } as const;
-		m.addLayer({
-			id: 'route-glow',
-			type: 'line',
-			source: 'route',
-			layout: round,
-			paint: { 'line-color': '#f59e0b', 'line-width': 16, 'line-blur': 12, 'line-opacity': 0.55 }
-		});
+		// Whole route: dashed paper line, like a printed trail on a map.
 		m.addLayer({
 			id: 'route-core',
 			type: 'line',
 			source: 'route',
-			layout: round,
-			paint: { 'line-color': '#fbbf24', 'line-width': 3.5, 'line-opacity': 0.95 }
+			layout: { 'line-join': 'round' },
+			paint: { 'line-color': '#fbf6ea', 'line-width': 2.5, 'line-dasharray': [2, 1.6], 'line-opacity': 0.95 }
 		});
+		// Selected stage: solid ochre on a paper casing.
 		m.addLayer({
-			id: 'stage-glow',
+			id: 'stage-casing',
 			type: 'line',
 			source: 'stage',
 			layout: round,
-			paint: { 'line-color': '#34d399', 'line-width': 18, 'line-blur': 12, 'line-opacity': 0.7 }
+			paint: { 'line-color': '#fbf6ea', 'line-width': 8 }
 		});
 		m.addLayer({
 			id: 'stage-core',
 			type: 'line',
 			source: 'stage',
 			layout: round,
-			paint: { 'line-color': '#6ee7b7', 'line-width': 4.5 }
+			paint: { 'line-color': '#c4571f', 'line-width': 4.5 }
+		});
+		// Distance walked so far.
+		m.addLayer({
+			id: 'progress-casing',
+			type: 'line',
+			source: 'progress',
+			layout: round,
+			paint: { 'line-color': '#fbf6ea', 'line-width': 7 }
 		});
 		m.addLayer({
 			id: 'progress-core',
 			type: 'line',
 			source: 'progress',
 			layout: round,
-			paint: { 'line-color': '#10b981', 'line-width': 5 }
+			paint: { 'line-color': '#c4571f', 'line-width': 4 }
 		});
 	}
 
@@ -376,21 +379,19 @@
 </div>
 
 {#if !ready}
-	<div class="absolute inset-0 grid place-items-center bg-[#090d16]">
-		<p class="animate-pulse font-mono text-xs tracking-[0.3em] text-emerald-400/80">LOADING TERRAIN…</p>
+	<div class="absolute inset-0 grid place-items-center bg-paper-2">
+		<p class="display text-lg text-ink-soft italic">Loading terrain…</p>
 	</div>
 {/if}
 
 <style>
 	:global(.scrub-dot) {
-		width: 18px;
-		height: 18px;
+		width: 16px;
+		height: 16px;
 		border-radius: 9999px;
-		background: #fbbf24;
-		border: 3px solid #fff;
-		box-shadow:
-			0 0 0 6px rgba(251, 191, 36, 0.25),
-			0 0 24px 6px rgba(251, 191, 36, 0.8);
+		background: #c4571f;
+		border: 3px solid #f4eee2;
+		box-shadow: 0 1px 6px rgb(0 0 0 / 0.5);
 		pointer-events: none;
 	}
 </style>

@@ -10,7 +10,7 @@
 
 <button
 	type="button"
-	class="group flex -translate-y-1 cursor-pointer flex-col items-center gap-1.5 outline-none"
+	class="group flex cursor-pointer flex-col items-center gap-1 outline-none"
 	aria-label="Fly to {waypoint.name}, {waypoint.elevation.toLocaleString()} metres"
 	onclick={(e) => {
 		e.stopPropagation();
@@ -18,37 +18,16 @@
 	}}
 >
 	<span
-		class="glass rounded-full px-2.5 py-1 text-[11px] font-medium whitespace-nowrap text-white/90 transition group-hover:border-emerald-400/60 group-focus-visible:border-emerald-400/60 {active
-			? 'border-emerald-400/70! text-emerald-300'
-			: ''}"
+		class="rounded-[2px] border px-2 py-1 text-[11px] leading-none whitespace-nowrap shadow-[0_2px_8px_rgb(0_0_0/0.3)] transition-colors {active
+			? 'border-ink bg-ink text-paper'
+			: 'border-rule bg-paper text-ink group-hover:border-ink'}"
 	>
-		{waypoint.name}
-		<span class="ml-1 font-mono text-amber-300">{waypoint.elevation.toLocaleString()} m</span>
+		<span class="font-semibold">{waypoint.name}</span>
+		<span class="ml-1 tabular-nums {active ? 'text-paper/70' : 'text-ink-soft'}">{waypoint.elevation.toLocaleString()} m</span>
 	</span>
-	<span class="relative flex size-3.5 items-center justify-center">
-		<span class="pulse-ring absolute inline-flex size-full rounded-full bg-emerald-400/60"></span>
-		<span
-			class="relative inline-flex size-3 rounded-full border-2 border-white bg-emerald-500 shadow-[0_0_12px_2px_rgba(16,185,129,0.8)] transition group-hover:scale-125 {active
-				? 'scale-125 bg-amber-400'
-				: ''}"
-		></span>
-	</span>
+	<span
+		class="size-3 rounded-full border-2 border-paper shadow-[0_1px_4px_rgb(0_0_0/0.5)] transition-transform group-hover:scale-125 {active
+			? 'scale-125 bg-ink'
+			: 'bg-ochre'}"
+	></span>
 </button>
-
-<style>
-	.pulse-ring {
-		animation: ping 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
-	}
-	@keyframes ping {
-		75%,
-		100% {
-			transform: scale(2.4);
-			opacity: 0;
-		}
-	}
-	@media (prefers-reduced-motion: reduce) {
-		.pulse-ring {
-			animation: none;
-		}
-	}
-</style>
