@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Button, Progressbar, Tooltip } from 'flowbite-svelte';
 	import { Play, Pause, RotateCcw } from 'lucide-svelte';
 	import { TOTAL_KM } from '#lib/data/route.ts';
 	import { trek } from '#lib/state/trek.svelte.ts';
@@ -6,10 +7,12 @@
 	const atEnd = $derived(trek.scrubKm !== null && trek.scrubKm >= TOTAL_KM - 0.05);
 </script>
 
-<div class="flex items-center gap-2">
-	<button
-		type="button"
-		class="flex items-center gap-2 rounded-full bg-emerald-500 px-4 py-2 text-sm font-semibold text-black shadow-[0_0_24px_rgba(16,185,129,0.45)] transition hover:bg-emerald-400 disabled:opacity-50"
+<div class="flex items-center gap-3">
+	<Button
+		id="play-btn"
+		pill
+		color="primary"
+		class="gap-2 shadow-[0_0_24px_rgba(16,185,129,0.45)]"
 		disabled={!trek.mapReady}
 		onclick={() => trek.togglePlay()}
 	>
@@ -20,11 +23,19 @@
 		{:else}
 			<Play class="size-4" aria-hidden="true" /> {trek.scrubKm ? 'Resume' : 'Play / Trek'}
 		{/if}
-	</button>
-	<div class="hidden font-mono text-xs text-white/60 tabular-nums sm:block">
+	</Button>
+	<Tooltip triggeredBy="#play-btn">Cinematic fly-through from Marangu Gate to Uhuru Peak</Tooltip>
+
+	<span class="hidden font-mono text-xs text-gray-400 tabular-nums sm:block">
 		{(trek.scrubKm ?? 0).toFixed(1)} / {TOTAL_KM.toFixed(1)} km
-	</div>
-	<div class="hidden h-1.5 w-28 overflow-hidden rounded-full bg-white/10 sm:block" aria-hidden="true">
-		<div class="h-full rounded-full bg-linear-to-r from-emerald-400 to-amber-300" style="width: {trek.progress * 100}%"></div>
-	</div>
+	</span>
+	<Progressbar
+		progress={trek.progress * 100}
+		animate={false}
+		tweenDuration={0}
+		size="h-1.5"
+		color="primary"
+		class="hidden w-28 sm:block"
+		aria-label="Trek progress"
+	/>
 </div>
