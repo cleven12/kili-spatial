@@ -38,6 +38,7 @@ class TrekState {
 	}
 
 	focusWaypoint(id: string) {
+		this.scrubKm = null;
 		this.activeWaypoint = id;
 		this.activeStage = null;
 		this.playing = false;
@@ -45,6 +46,7 @@ class TrekState {
 	}
 
 	focusStage(id: number) {
+		this.scrubKm = null;
 		this.activeStage = id;
 		this.activeWaypoint = null;
 		this.playing = false;
@@ -52,6 +54,7 @@ class TrekState {
 	}
 
 	showOverview() {
+		this.scrubKm = null;
 		this.activeStage = null;
 		this.activeWaypoint = null;
 		this.playing = false;
