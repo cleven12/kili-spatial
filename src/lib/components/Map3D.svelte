@@ -10,6 +10,7 @@
 		StyleSpecification
 	} from 'maplibre-gl';
 	import { trek } from '#lib/state/trek.svelte.ts';
+	import { gps } from '#lib/state/gps.svelte.ts';
 	import type { Place } from '#lib/types.ts';
 	import WaypointMarker from './WaypointMarker.svelte';
 
@@ -25,6 +26,9 @@
 	let markers: { remove: () => void }[] = [];
 	let scrubMarker: Marker | undefined;
 	let scrubShown = false;
+	let gpsMarker: Marker | undefined;
+	let gpsShown = false;
+	let followBearing = 0;
 	let orbitFrame = 0;
 	let flyFrame = 0;
 
@@ -178,6 +182,8 @@
 		m.addSource('routes-all', { type: 'geojson', data: emptyCollection });
 		m.addSource('progress', { type: 'geojson', data: emptyLine });
 		m.addSource('stage', { type: 'geojson', data: emptyLine });
+		m.addSource('import-line', { type: 'geojson', data: emptyLine });
+		m.addSource('gps-accuracy', { type: 'geojson', data: emptyCollection });
 		m.addSource('gaps', { type: 'geojson', data: emptyCollection });
 		m.addSource('places', { type: 'geojson', data: emptyCollection });
 		m.addSource('lodging', {
@@ -216,6 +222,11 @@
 		m.addLayer({ id: 'stage-core', type: 'line', source: 'stage', layout: round, paint: { 'line-color': '#c4571f', 'line-width': 4.5 } });
 		m.addLayer({ id: 'progress-casing', type: 'line', source: 'progress', layout: round, paint: { 'line-color': '#fbf6ea', 'line-width': 7 } });
 		m.addLayer({ id: 'progress-core', type: 'line', source: 'progress', layout: round, paint: { 'line-color': '#c4571f', 'line-width': 4 } });
+
+		m.addLayer({ id: 'import-casing', type: 'line', source: 'import-line', layout: round, paint: { 'line-color': '#fbf6ea', 'line-width': 6 } });
+		m.addLayer({ id: 'import-core', type: 'line', source: 'import-line', layout: round, paint: { 'line-color': '#1f1b16', 'line-width': 3, 'line-dasharray': [2, 1.5] } });
+		m.addLayer({ id: 'gps-accuracy-fill', type: 'fill', source: 'gps-accuracy', paint: { 'fill-color': '#1f1b16', 'fill-opacity': 0.12 } });
+		m.addLayer({ id: 'gps-accuracy-line', type: 'line', source: 'gps-accuracy', paint: { 'line-color': '#1f1b16', 'line-opacity': 0.5, 'line-width': 1 } });
 
 		// Places that are not stops on the selected route.
 		m.addLayer({
@@ -294,6 +305,11 @@
 		const dot = document.createElement('div');
 		dot.className = 'scrub-dot';
 		scrubMarker = new maplibre!.Marker({ element: dot });
+
+		const puck = document.createElement('div');
+		puck.className = 'gps-puck';
+		puck.innerHTML = '<span class="gps-puck-arrow"></span>';
+		gpsMarker = new maplibre!.Marker({ element: puck, rotationAlignment: 'map', pitchAlignment: 'map' });
 	}
 
 	onMount(() => {
@@ -332,6 +348,7 @@
 			const release = () => {
 				stopOrbit();
 				if (trek.playing) trek.playing = false;
+				gps.follow = false;
 			};
 			m.on('dragstart', release);
 			m.on('wheel', release);
@@ -345,6 +362,7 @@
 			markers.forEach((mk) => mk.remove());
 			markers = [];
 			scrubMarker?.remove();
+			gpsMarker?.remove();
 			map?.remove();
 			map = undefined;
 			trek.mapReady = false;
@@ -495,7 +513,7 @@
 		setLine('stage', day && track ? track.coordinatesBetween(day.startKm, day.endKm) : []);
 	});
 
-	// Progress trail + scrub marker follow scrubKm.
+	// Progress trail + scrub marker follow scrubKm (the GPS puck replaces the dot).
 	$effect(() => {
 		if (!dataReady || !map || !scrubMarker) return;
 		const km = trek.scrubKm;
@@ -506,13 +524,68 @@
 			setLine('progress', []);
 			return;
 		}
+		setLine('progress', track.coordinatesUpTo(km));
+		if (gps.fix) {
+			scrubMarker.remove();
+			scrubShown = false;
+			return;
+		}
 		const p = track.pointAt(km);
 		scrubMarker.setLngLat([p.lng, p.lat]);
 		if (!scrubShown) {
 			scrubMarker.addTo(map);
 			scrubShown = true;
 		}
-		setLine('progress', track.coordinatesUpTo(km));
+	});
+
+	/** Circle polygon (metres) for the GPS accuracy ring. */
+	function circle(lng: number, lat: number, radiusM: number): GeoJSON.Feature<GeoJSON.Polygon> {
+		const pts: [number, number][] = [];
+		const dLat = radiusM / 111320;
+		const dLng = radiusM / (111320 * Math.cos((lat * Math.PI) / 180));
+		for (let i = 0; i <= 48; i++) {
+			const a = (i / 48) * 2 * Math.PI;
+			pts.push([lng + dLng * Math.cos(a), lat + dLat * Math.sin(a)]);
+		}
+		return { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [pts] } };
+	}
+
+	// Imported GPX trace.
+	$effect(() => {
+		if (!dataReady) return;
+		setLine('import-line', gps.trace ?? []);
+	});
+
+	// GPS puck, accuracy ring and camera follow.
+	$effect(() => {
+		if (!dataReady || !map || !gpsMarker) return;
+		const f = gps.fix;
+		const acc = map.getSource('gps-accuracy') as GeoJSONSource | undefined;
+		if (!f) {
+			gpsMarker.remove();
+			gpsShown = false;
+			acc?.setData({ type: 'FeatureCollection', features: [] });
+			return;
+		}
+		gpsMarker.setLngLat([f.lng, f.lat]).setRotation(f.heading);
+		if (!gpsShown) {
+			gpsMarker.addTo(map);
+			gpsShown = true;
+		}
+		acc?.setData({ type: 'FeatureCollection', features: [circle(f.lng, f.lat, f.accuracy)] });
+
+		if (gps.follow && (gps.playing || gps.mode === 'live')) {
+			followBearing += shortestAngle(followBearing, f.heading) * 0.05;
+			const m = map;
+			untrack(() => {
+				m.jumpTo({
+					center: [f.lng, f.lat],
+					bearing: followBearing,
+					pitch: Math.max(m.getPitch(), 55),
+					zoom: Math.max(m.getZoom(), 13.5)
+				});
+			});
+		}
 	});
 
 	// Cinematic fly-through along the selected route.
@@ -581,6 +654,24 @@
 {/if}
 
 <style>
+	:global(.gps-puck) {
+		width: 20px;
+		height: 20px;
+		border-radius: 9999px;
+		background: #1f1b16;
+		border: 3px solid #f4eee2;
+		box-shadow: 0 1px 6px rgb(0 0 0 / 0.5);
+		pointer-events: none;
+	}
+	:global(.gps-puck-arrow) {
+		position: absolute;
+		left: 50%;
+		top: -9px;
+		margin-left: -5px;
+		border-left: 5px solid transparent;
+		border-right: 5px solid transparent;
+		border-bottom: 9px solid #1f1b16;
+	}
 	:global(.scrub-dot) {
 		width: 16px;
 		height: 16px;
