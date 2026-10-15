@@ -63,7 +63,7 @@
 		const placed: { id: string; name: string; km: number; elevation: number; px: number; anchor: 'start' | 'middle' | 'end' }[] = [];
 		for (const { mark, place } of stops) {
 			const px = x(mark.km);
-			const w = place.name.length * 5.6 + 8;
+			const w = place.name.length * 6.6 + 8;
 			// Decide the anchor first so the occupied interval matches what is drawn.
 			const anchor = px - w / 2 < PAD.l - 24 ? 'start' : px + w / 2 > width - 6 ? 'end' : 'middle';
 			const lo = anchor === 'start' ? px : anchor === 'end' ? px - w : px - w / 2;

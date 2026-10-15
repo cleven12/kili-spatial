@@ -18,7 +18,7 @@ Open-source 3D trekking viewer for **Mount Kilimanjaro**: seven routes, park gat
 
 ## Stack
 
-SvelteKit 3 · Svelte 5 (runes) · TypeScript · Tailwind CSS v4 · Flowbite Svelte · MapLibre GL JS · lucide-svelte · Fraunces + Instrument Sans (self-hosted via Fontsource) · pnpm
+SvelteKit 3 · Svelte 5 (runes) · TypeScript · Tailwind CSS v4 · Flowbite Svelte · MapLibre GL JS· lucide-svelte · pnpm
 
 ## Getting started
 

@@ -9,7 +9,6 @@
 		{ what: 'Terrain elevation', who: 'Mapzen / AWS Terrain Tiles (Terrarium)' },
 		{ what: '3D engine', who: 'MapLibre GL JS (BSD-3-Clause)' },
 		{ what: 'UI components', who: 'Flowbite Svelte (MIT)' },
-		{ what: 'Typefaces', who: 'Fraunces and Instrument Sans (SIL OFL)' },
 		{ what: 'Icons', who: 'Lucide (ISC)' }
 	];
 </script>
