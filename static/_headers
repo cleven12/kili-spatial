@@ -1,8 +1,8 @@
-# Netlify / Cloudflare Pages headers. Replace the origins with the sites that may embed the viewer.
+# Cloudflare headers. Embedding is allowed only from the sites listed in frame-ancestors.
 /embed
-  Content-Security-Policy: frame-ancestors 'self' https://example.com https://www.example.com
+  Content-Security-Policy: frame-ancestors 'self' https://xenohuru.com https://www.xenohuru.com
 /embed/*
-  Content-Security-Policy: frame-ancestors 'self' https://example.com https://www.example.com
+  Content-Security-Policy: frame-ancestors 'self' https://xenohuru.com https://www.xenohuru.com
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
