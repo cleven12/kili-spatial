@@ -49,6 +49,7 @@ const en = {
 	'place.onRoutes': 'On routes',
 	'place.website': 'Website',
 	'place.close': 'Close details',
+	'place.show': 'Show {name}',
 	'place.details': 'Place details',
 
 	'readout.underCamera': 'under the camera',

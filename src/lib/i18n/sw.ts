@@ -50,6 +50,7 @@ const sw: Dict = {
 	'place.onRoutes': 'Kwenye njia',
 	'place.website': 'Tovuti',
 	'place.close': 'Funga maelezo',
+	'place.show': 'Onyesha {name}',
 	'place.details': 'Maelezo ya mahali',
 
 	'readout.underCamera': 'chini ya kamera',

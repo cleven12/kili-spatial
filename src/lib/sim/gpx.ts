@@ -50,18 +50,18 @@ export interface ImportedTrack {
 	points: [number, number][];
 }
 
-/** Parse a GPX file's tracks (or route points) into a playable timeline. Throws a readable error. */
+/** Parse a GPX file's tracks (or route points) into a playable timeline. Throws an Error whose message is an i18n key. */
 export function parseGpx(text: string, fallbackName: string): ImportedTrack {
 	const doc = new DOMParser().parseFromString(text, 'application/xml');
-	if (doc.querySelector('parsererror')) throw new Error('This file is not valid XML.');
+	if (doc.querySelector('parsererror')) throw new Error('gps.errXml');
 	const root = doc.documentElement;
-	if (root.localName !== 'gpx') throw new Error('This file is not a GPX file.');
+	if (root.localName !== 'gpx') throw new Error('gps.errNotGpx');
 
 	const all = (name: string) => [...doc.getElementsByTagNameNS('*', name)];
 	let nodes = all('trkpt');
 	if (!nodes.length) nodes = all('rtept');
-	if (nodes.length < 2) throw new Error('No track or route points found in this GPX file.');
-	if (nodes.length > 200_000) throw new Error('This GPX file is too large (over 200,000 points).');
+	if (nodes.length < 2) throw new Error('gps.errNoPoints');
+	if (nodes.length > 200_000) throw new Error('gps.errTooBig');
 
 	const read = (el: Element, tag: string) => el.getElementsByTagNameNS('*', tag)[0]?.textContent?.trim() ?? '';
 	const raw = nodes
@@ -72,7 +72,7 @@ export function parseGpx(text: string, fallbackName: string): ImportedTrack {
 			time: Date.parse(read(n, 'time'))
 		}))
 		.filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng) && Math.abs(p.lat) <= 90 && Math.abs(p.lng) <= 180);
-	if (raw.length < 2) throw new Error('No valid coordinates found in this GPX file.');
+	if (raw.length < 2) throw new Error('gps.errNoCoords');
 
 	const timed = raw.every((p) => Number.isFinite(p.time)) && raw[raw.length - 1].time > raw[0].time;
 	const name = read(doc.documentElement, 'name') || fallbackName;

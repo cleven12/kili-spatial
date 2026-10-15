@@ -50,6 +50,7 @@ const fr: Dict = {
 	'place.onRoutes': 'Sur les voies',
 	'place.website': 'Site web',
 	'place.close': 'Fermer les détails',
+	'place.show': 'Afficher {name}',
 	'place.details': 'Détails du lieu',
 
 	'readout.underCamera': 'sous la caméra',

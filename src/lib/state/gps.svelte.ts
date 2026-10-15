@@ -1,12 +1,13 @@
 import { toGpx, parseGpx, type ImportedTrack } from '#lib/sim/gpx.ts';
 import { fixAt, simulateRoute, type Fix, type Timeline } from '#lib/sim/timeline.ts';
+import type { Key } from '#lib/i18n/en.ts';
 import { trek } from '#lib/state/trek.svelte.ts';
 
 export const RATES = [
 	{ value: 60, label: '1 min / s' },
 	{ value: 600, label: '10 min / s' },
 	{ value: 1800, label: '30 min / s' },
-	{ value: 3600, label: '1 hour / s' }
+	{ value: 3600, label: '60 min / s' }
 ] as const;
 
 const today = () => new Date().toLocaleDateString('en-CA');
@@ -28,7 +29,8 @@ class GpsState {
 	follow = $state(true);
 	startDate = $state(today());
 	live = $state.raw<Fix | null>(null);
-	error = $state<string | null>(null);
+	/** i18n key of the last error. */
+	error = $state<Key | null>(null);
 
 	private frame = 0;
 	private watchId: number | null = null;
@@ -52,7 +54,7 @@ class GpsState {
 		this.reset();
 		const route = trek.route;
 		if (!route) {
-			this.error = 'Select a single route to simulate a GPS track.';
+			this.error = 'gps.needRoute';
 			this.mode = 'off';
 			this.timeline = null;
 			return;
@@ -136,7 +138,7 @@ class GpsState {
 			this.follow = true;
 			trek.scrubKm = null;
 		} catch (err) {
-			this.error = err instanceof Error ? err.message : 'Could not read this GPX file.';
+			this.error = err instanceof Error && err.message.startsWith('gps.') ? (err.message as Key) : 'gps.errUnreadable';
 		}
 	}
 
@@ -145,7 +147,7 @@ class GpsState {
 	startLive() {
 		this.reset();
 		if (!('geolocation' in navigator)) {
-			this.error = 'This browser does not support location.';
+			this.error = 'gps.errNoGeo';
 			return;
 		}
 		this.mode = 'live';
@@ -173,7 +175,7 @@ class GpsState {
 			},
 			(err) => {
 				this.stop();
-				this.error = err.code === err.PERMISSION_DENIED ? 'Location permission was denied.' : 'Could not get your location.';
+				this.error = err.code === err.PERMISSION_DENIED ? 'gps.errDenied' : 'gps.errFailed';
 			},
 			{ enableHighAccuracy: true, maximumAge: 2000, timeout: 20000 }
 		);
