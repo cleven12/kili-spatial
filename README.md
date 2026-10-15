@@ -77,9 +77,17 @@ src/routes/layout.css          design tokens (paper, ink, ochre) and type
 
 Imagery and terrain are loaded from third-party tile servers under their own terms. For production or high-traffic use, review those terms and consider your own tile provider (`style` in `src/lib/components/Map3D.svelte`).
 
+## GPS simulation and GPX
+
+Open the **GPS** panel on the map:
+
+- **Simulate** builds a timed walk of the selected route: 07:30 starts, a 30 minute lunch, overnight at each camp. Pace comes from Tobler's hiking function, slowed for a guided group and for altitude. Accuracy, speed and heading are synthetic. Times are East Africa Time (UTC+3).
+- **GPX file** replays any GPX track from your device; timestamps are used when present, otherwise 3 km/h is assumed. Files are parsed in the browser and never uploaded.
+- **My location** shows your real position using the browser's Geolocation API, only after you allow it. Nothing is stored or sent.
+- **GPX** exports the simulated track (one `<trk>` per day, plus the stops as waypoints).
+
 ## Roadmap
 
-- GPS simulation (timed track playback) and optional live device GPS, GPX import and export
 - `/embed` mode with `postMessage` sync for use inside itinerary pages
 - Support and contact by email for travellers and researchers
 - Verified summit points (Gilman's, Stella) and more accommodation detail

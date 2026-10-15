@@ -7,6 +7,7 @@
 	import ElevationChart from '#lib/components/ElevationChart.svelte';
 	import PlayControls from '#lib/components/PlayControls.svelte';
 	import PlaceCard from '#lib/components/PlaceCard.svelte';
+	import GpsPanel from '#lib/components/GpsPanel.svelte';
 	import Readout from '#lib/components/Readout.svelte';
 	import { trek } from '#lib/state/trek.svelte.ts';
 
@@ -34,6 +35,7 @@
 	<section class="relative min-h-0 overflow-hidden">
 		<Map3D />
 		<PlaceCard />
+		<GpsPanel />
 
 		<!-- Mobile top bar -->
 		<div class="absolute inset-x-0 top-0 flex items-center justify-between border-b border-rule bg-paper px-4 py-2.5 md:hidden">
