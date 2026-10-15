@@ -349,6 +349,9 @@
 
 		(async () => {
 			maplibre = await import('maplibre-gl');
+			// MapLibre locates its worker next to its own chunk, which a bundler does not emit: point it at one explicitly.
+			const { default: workerUrl } = await import('maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url');
+			maplibre.setWorkerUrl(workerUrl);
 			if (disposed) return;
 			const m = new maplibre.Map({
 				container,
