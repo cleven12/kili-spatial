@@ -4,6 +4,7 @@
 	let { open = $bindable(false) }: { open: boolean } = $props();
 
 	const credits = [
+		{ what: 'Trails and places', who: '© OpenStreetMap contributors (ODbL)' },
 		{ what: 'Satellite imagery', who: 'Esri, Maxar, Earthstar Geographics' },
 		{ what: 'Terrain elevation', who: 'Mapzen / AWS Terrain Tiles (Terrarium)' },
 		{ what: '3D engine', who: 'MapLibre GL JS (BSD-3-Clause)' },
@@ -20,11 +21,11 @@
 
 	<div class="space-y-4 text-[15px] text-ink">
 		<p>
-			An open-source (MIT) 3D viewer for the Marangu Route on Mount Kilimanjaro, built with SvelteKit, MapLibre GL
+			An open-source (MIT) 3D viewer for the Kilimanjaro trekking routes, built with SvelteKit, MapLibre GL
 			JS and Flowbite Svelte.
 		</p>
 		<p class="border-l-[3px] border-ochre bg-paper-2 px-4 py-3">
-			<strong class="font-semibold">Not for navigation.</strong> The trail is an approximation, and weather and
+			<strong class="font-semibold">Not for navigation.</strong> Itineraries are typical operator schedules, trail geometry comes from OpenStreetMap and may have gaps, and weather and
 			oxygen are simulated estimates from altitude. Trek with a licensed guide and official maps.
 		</p>
 		<dl class="border-t border-rule">
