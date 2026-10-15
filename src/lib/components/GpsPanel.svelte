@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Select } from 'flowbite-svelte';
-	import { Download, LocateFixed, Pause, Play, Satellite, Upload, X } from 'lucide-svelte';
+	import { Download, Plane, LocateFixed, Pause, Play, Satellite, Upload, X } from 'lucide-svelte';
 	import { gps, RATES } from '#lib/state/gps.svelte.ts';
 	import { trek } from '#lib/state/trek.svelte.ts';
 	import { formatClock } from '#lib/sim/timeline.ts';
@@ -35,7 +35,16 @@
 	);
 </script>
 
-<div class="absolute top-3 right-3 z-10 flex flex-col items-end gap-2 max-md:top-[4.25rem]">
+<div class="absolute top-3 right-14 z-10 flex flex-col items-end gap-2 max-md:top-[4.25rem] max-md:right-3">
+	<button
+		type="button"
+		class="flex items-center gap-2 border px-3 py-1.5 text-sm font-medium shadow-[0_2px_8px_rgb(0_0_0/0.25)] {trek.drone ? 'border-ink bg-ink text-paper' : 'border-ink bg-paper hover:text-ochre'}"
+		aria-pressed={trek.drone}
+		disabled={!trek.mapReady}
+		onclick={() => trek.toggleDrone()}
+	>
+		<Plane class="size-4" aria-hidden="true" /> {trek.drone ? 'Stop drone view' : 'Drone view'}
+	</button>
 	{#if !open}
 		<button
 			type="button"

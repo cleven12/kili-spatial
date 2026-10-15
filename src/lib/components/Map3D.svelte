@@ -31,6 +31,12 @@
 	let followBearing = 0;
 	let orbitFrame = 0;
 	let flyFrame = 0;
+	let droneFrame = 0;
+
+	function stopDrone() {
+		cancelAnimationFrame(droneFrame);
+		droneFrame = 0;
+	}
 
 	const prefersReducedMotion = () =>
 		browser && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -349,6 +355,7 @@
 				stopOrbit();
 				if (trek.playing) trek.playing = false;
 				gps.follow = false;
+				trek.drone = false;
 			};
 			m.on('dragstart', release);
 			m.on('wheel', release);
@@ -586,6 +593,56 @@
 				});
 			});
 		}
+	});
+
+	// Drone view: hover high above the summit, orbiting while slowly breathing in and out.
+	$effect(() => {
+		if (!dataReady || !map) return;
+		if (!trek.drone) {
+			stopDrone();
+			return;
+		}
+		const m = map;
+		stopFly();
+		stopOrbit();
+		untrack(() => {
+			gps.pause();
+			gps.follow = false;
+		});
+		m.stop();
+		const SUMMIT: [number, number] = [37.3556, -3.0675];
+		const PERIOD = 48; // seconds per zoom breath
+		m.easeTo({ center: SUMMIT, zoom: 10.2, pitch: 28, duration: 2200, essential: true });
+		let started = false;
+		let t0 = 0;
+		let last = 0;
+		let bearing = 0;
+		const tick = (now: number) => {
+			if (!started) {
+				if (m.isMoving()) {
+					droneFrame = requestAnimationFrame(tick);
+					return;
+				}
+				started = true;
+				t0 = last = now;
+				bearing = m.getBearing();
+			}
+			const dt = Math.min(0.1, (now - last) / 1000);
+			last = now;
+			const phase = (((now - t0) / 1000) / PERIOD) * 2 * Math.PI;
+			bearing = (bearing + 4.5 * dt) % 360;
+			// Wide at the top of the breath (whole mountain), close at the bottom (summit glaciers).
+			const wave = 0.5 - 0.5 * Math.cos(phase);
+			m.jumpTo({
+				center: SUMMIT,
+				bearing,
+				zoom: 10.2 + 2.8 * wave,
+				pitch: 28 + 30 * wave
+			});
+			droneFrame = requestAnimationFrame(tick);
+		};
+		droneFrame = requestAnimationFrame(tick);
+		return stopDrone;
 	});
 
 	// Cinematic fly-through along the selected route.

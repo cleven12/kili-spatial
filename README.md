@@ -77,6 +77,10 @@ src/routes/layout.css          design tokens (paper, ink, ochre) and type
 
 Imagery and terrain are loaded from third-party tile servers under their own terms. For production or high-traffic use, review those terms and consider your own tile provider (`style` in `src/lib/components/Map3D.svelte`).
 
+## Drone view
+
+The **Drone view** button (or `?drone=1` in the URL) starts a high, near top-down orbit of the whole mountain that slowly zooms in towards the summit and back out. Dragging, scrolling, picking a place or starting playback ends it. It needs no account and works for every visitor.
+
 ## GPS simulation and GPX
 
 Open the **GPS** panel on the map:

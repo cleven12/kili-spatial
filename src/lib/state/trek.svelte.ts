@@ -27,6 +27,8 @@ class TrekState {
 	scrubKm = $state<number | null>(null);
 	scrubbing = $state(false);
 	playing = $state(false);
+	/** Drone view: a slow, high orbit of the whole mountain. */
+	drone = $state(false);
 	activeDay = $state<number | null>(null);
 	/** Place whose detail card is open. */
 	activePlace = $state<string | null>(null);
@@ -63,9 +65,11 @@ class TrekState {
 			this.places = data.places;
 			this.lodging = data.lodging;
 			this.meta = data.meta;
-			const wanted = new URLSearchParams(location.search).get('route');
+			const params = new URLSearchParams(location.search);
+			const wanted = params.get('route');
 			this.routeId = wanted === 'all' ? null : wanted && data.routes[wanted] ? wanted : DEFAULT_ROUTE;
 			this.command = this.routeId ? { kind: 'route' } : { kind: 'overview' };
+			this.drone = params.get('drone') === '1';
 			this.status = 'ready';
 		} catch (err) {
 			this.error = err instanceof Error ? err.message : String(err);
@@ -78,6 +82,7 @@ class TrekState {
 		this.activeDay = null;
 		this.activePlace = null;
 		this.playing = false;
+		this.drone = false;
 	}
 
 	selectRoute(id: string | null) {
@@ -98,6 +103,7 @@ class TrekState {
 		this.activePlace = id;
 		this.activeDay = null;
 		this.playing = false;
+		this.drone = false;
 		this.command = { kind: 'place', id };
 	}
 
@@ -106,6 +112,7 @@ class TrekState {
 		this.activeDay = day;
 		this.activePlace = null;
 		this.playing = false;
+		this.drone = false;
 		this.command = { kind: 'day', day };
 	}
 
@@ -122,7 +129,16 @@ class TrekState {
 		}
 		this.activeDay = null;
 		this.activePlace = null;
+		this.drone = false;
 		this.playing = true;
+	}
+
+	toggleDrone() {
+		this.drone = !this.drone;
+		if (this.drone) {
+			this.playing = false;
+			this.activePlace = null;
+		}
 	}
 }
 
