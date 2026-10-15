@@ -39,5 +39,27 @@
 	"packageManager": "pnpm@10.34.7",
 	"license": "AGPL-3.0-only",
 	"description": "Open-source 3D trekking viewer for Mount Kilimanjaro's Marangu Route",
-	"keywords": "[\"kilimanjaro\",\"maplibre\",\"svelte\",\"3d-map\",\"trekking\"]"
+	"keywords": [
+		"kilimanjaro",
+		"maplibre",
+		"svelte",
+		"sveltekit",
+		"3d-map",
+		"trekking",
+		"hiking",
+		"terrain",
+		"gpx",
+		"openstreetmap",
+		"tanzania",
+		"embeddable"
+	],
+	"author": "Cleven G",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/cleven12/kili-spatial.git"
+	},
+	"homepage": "https://kili.xenohuru.com",
+	"bugs": {
+		"url": "https://github.com/cleven12/kili-spatial/issues"
+	}
 }
