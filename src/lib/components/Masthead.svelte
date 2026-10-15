@@ -1,50 +1,51 @@
 <script lang="ts">
+	import { t, i18n } from '#lib/i18n/index.svelte.ts';
 	import { Select } from 'flowbite-svelte';
 	import { trek } from '#lib/state/trek.svelte.ts';
 
 	const options = $derived([
-		{ value: 'all', name: 'All routes' },
-		...trek.index.map((r) => ({ value: r.id, name: `${r.name} · ${r.durationDays} days · ${Math.round(r.distanceKm)} km` }))
+		{ value: 'all', name: t('site.allRoutes') },
+		...trek.index.map((r) => ({ value: r.id, name: t('masthead.option', { name: r.name, days: r.durationDays, km: Math.round(r.distanceKm) }) }))
 	]);
 
 	const facts = $derived(
 		trek.route
 			? [
-					{ k: 'Days', v: String(trek.route.durationDays) },
-					{ k: 'Distance', v: `${Math.round(trek.route.stats.distanceKm)} km` },
-					{ k: 'Ascent', v: `${trek.route.stats.ascentM.toLocaleString()} m` }
+					{ k: t('fact.days'), v: String(trek.route.durationDays) },
+					{ k: t('fact.distance'), v: `${Math.round(trek.route.stats.distanceKm)} km` },
+					{ k: t('fact.ascent'), v: `${i18n.n(trek.route.stats.ascentM)} m` }
 				]
 			: [
-					{ k: 'Routes', v: String(trek.index.length) },
-					{ k: 'Places', v: String(trek.places.length) },
-					{ k: 'Summit', v: '5,895 m' }
+					{ k: t('fact.routes'), v: String(trek.index.length) },
+					{ k: t('fact.places'), v: String(trek.places.length) },
+					{ k: t('fact.summit'), v: `${i18n.n(5895)} m` }
 				]
 	);
 </script>
 
 <header class="px-5 pt-5 pb-4">
-	<p class="label">Mount Kilimanjaro, Tanzania</p>
+	<p class="label">{t('site.region')}</p>
 	<h1 class="display mt-1 text-[2rem] leading-[1.05] font-semibold">
-		{trek.route ? `${trek.route.name} Route` : 'All routes'}
+		{trek.route ? t('site.routeTitle', { name: trek.route.name }) : t('site.allRoutes')}
 	</h1>
 	<p class="mt-2 text-sm text-ink-soft">
 		{#if trek.route}
-			<span class="italic">{trek.route.nickname}</span> · {trek.route.accommodation === 'huts' ? 'Sleeps in huts' : 'Camping'}
+			<span class="italic">{i18n.route(trek.route.id).nickname}</span> · {trek.route.accommodation === 'huts' ? t('masthead.huts') : t('masthead.camping')}
 		{:else}
-			Pick a route to see its itinerary, camps and elevation profile.
+			{t('masthead.pick')}
 		{/if}
 	</p>
 	{#if trek.route}
-		<p class="mt-2 text-sm text-ink">{trek.route.summary}</p>
+		<p class="mt-2 text-sm text-ink">{i18n.route(trek.route.id).summary}</p>
 		{#if trek.route.unverified}
 			<p class="mt-2 border-l-[3px] border-ochre bg-paper-2 px-3 py-2 text-[13px]">
-				Indicative itinerary. {trek.route.note ?? 'Day split is approximate.'}
+				{t('masthead.indicative')} {i18n.lang === 'en' && trek.route.note ? trek.route.note : t('masthead.daySplit')}
 			</p>
 		{/if}
 	{/if}
 
 	<label class="mt-4 block">
-		<span class="label">Route</span>
+		<span class="label">{t('masthead.route')}</span>
 		<Select
 			size="sm"
 			class="mt-1 rounded-sm border-rule bg-paper text-ink"

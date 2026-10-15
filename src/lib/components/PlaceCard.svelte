@@ -1,26 +1,26 @@
 <script lang="ts">
+	import { t, i18n } from '#lib/i18n/index.svelte.ts';
 	import { X } from 'lucide-svelte';
 	import { trek } from '#lib/state/trek.svelte.ts';
 
-	const kindLabel = { gate: 'Park gate', camp: 'Camp', hut: 'Hut', summit: 'Summit', lodging: 'Lodging' } as const;
-
+	
 	const place = $derived(trek.activePlace ? trek.placeById.get(trek.activePlace) : undefined);
 </script>
 
 {#if place}
 	<section
-		aria-label="Place details"
+		aria-label={t('place.details')}
 		class="absolute top-3 left-3 z-10 max-h-[60%] w-[min(20rem,calc(100%-5rem))] overflow-y-auto border border-rule bg-paper px-4 py-3 shadow-[0_6px_24px_rgb(0_0_0/0.25)] max-md:top-[4.25rem]"
 	>
 		<div class="flex items-start justify-between gap-3">
 			<div>
-				<p class="label">{kindLabel[place.kind]}{place.subtype ? ` · ${place.subtype.replace('_', ' ')}` : ''}</p>
+				<p class="label">{t(`place.${place.kind}`)}{place.subtype ? ` · ${place.subtype.replace('_', ' ')}` : ''}</p>
 				<h3 class="display text-lg leading-tight font-medium">{place.name}</h3>
 			</div>
 			<button
 				type="button"
 				class="rounded-sm p-1 text-ink-soft hover:text-ochre"
-				aria-label="Close details"
+				aria-label={t('place.close')}
 				onclick={() => (trek.activePlace = null)}
 			>
 				<X class="size-4" aria-hidden="true" />
@@ -30,22 +30,22 @@
 		<dl class="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
 			{#if place.elevation}
 				<div>
-					<dt class="label">Elevation</dt>
-					<dd class="font-medium tabular-nums">{place.elevation.toLocaleString()} m</dd>
+					<dt class="label">{t('place.elevation')}</dt>
+					<dd class="font-medium tabular-nums">{i18n.n(place.elevation)} m</dd>
 				</div>
 			{/if}
 			{#if place.distanceToGateKm !== undefined}
 				<div>
-					<dt class="label">To {trek.placeById.get(place.nearestGate ?? '')?.name ?? 'nearest gate'}</dt>
+					<dt class="label">{t('place.toGate', { name: trek.placeById.get(place.nearestGate ?? '')?.name ?? t('place.nearestGate') })}</dt>
 					<dd class="font-medium tabular-nums">{place.distanceToGateKm} km</dd>
 				</div>
 			{/if}
 			<div class="col-span-2">
-				<dt class="label">Position</dt>
+				<dt class="label">{t('place.position')}</dt>
 				<dd class="tabular-nums">
 					{place.coordinates[1].toFixed(4)}, {place.coordinates[0].toFixed(4)}
 					<span class="text-ink-soft">
-						· {place.approximate ? 'approximate' : place.source === 'osm' ? 'from OpenStreetMap' : 'curated'}
+						· {place.approximate ? t('place.approximate') : place.source === 'osm' ? t('place.fromOsm') : t('place.curated')}
 					</span>
 				</dd>
 			</div>
@@ -57,7 +57,7 @@
 
 		{#if place.routes?.length}
 			<p class="mt-2 text-sm">
-				<span class="label">On routes</span><br />
+				<span class="label">{t('place.onRoutes')}</span><br />
 				{#each place.routes as id, i (id)}
 					<button
 						type="button"
@@ -74,7 +74,7 @@
 					class="underline decoration-rule underline-offset-4 hover:text-ochre"
 					href={place.website}
 					target="_blank"
-					rel="noopener noreferrer nofollow">Website</a
+					rel="noopener noreferrer nofollow">{t('place.website')}</a
 				>
 			</p>
 		{/if}

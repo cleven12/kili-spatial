@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { t, i18n } from '#lib/i18n/index.svelte.ts';
 	import { trek } from '#lib/state/trek.svelte.ts';
 
 	let { onpick }: { onpick?: () => void } = $props();
@@ -10,10 +11,10 @@
 	}
 </script>
 
-<nav aria-label="Itinerary" class="flex min-h-0 flex-1 flex-col">
+<nav aria-label={t('itinerary.title')} class="flex min-h-0 flex-1 flex-col">
 	{#if trek.route}
 		<div class="flex shrink-0 items-baseline justify-between px-5 pb-2">
-			<h2 class="display text-lg font-medium">Itinerary</h2>
+			<h2 class="display text-lg font-medium">{t('itinerary.title')}</h2>
 			<button
 				type="button"
 				class="text-sm text-ink-soft underline decoration-rule underline-offset-4 hover:text-ochre"
@@ -22,7 +23,7 @@
 					onpick?.();
 				}}
 			>
-				{trek.activeDay !== null ? 'Show whole route' : 'Reset view'}
+				{trek.activeDay !== null ? t('itinerary.whole') : t('itinerary.reset')}
 			</button>
 		</div>
 
@@ -47,7 +48,7 @@
 								{placeName(day.from)} <span class="text-ink-soft">→</span> {placeName(day.to)}
 							</span>
 							<span class="mt-0.5 block text-[13px] text-ink-soft tabular-nums">
-								{day.distanceKm.toFixed(1)} km · +{day.ascentM.toLocaleString()} / −{day.descentM.toLocaleString()} m · to {day.endElevation.toLocaleString()} m
+								{t('itinerary.dayStats', { km: day.distanceKm.toFixed(1), up: i18n.n(day.ascentM), down: i18n.n(day.descentM), end: i18n.n(day.endElevation) })}
 							</span>
 						</span>
 					</button>
@@ -56,7 +57,7 @@
 		</ol>
 	{:else}
 		<div class="shrink-0 px-5 pb-2">
-			<h2 class="display text-lg font-medium">Routes</h2>
+			<h2 class="display text-lg font-medium">{t('itinerary.routes')}</h2>
 		</div>
 		<ul class="min-h-0 flex-1 overflow-y-auto border-t border-rule">
 			{#each trek.index as r (r.id)}
@@ -71,10 +72,10 @@
 					>
 						<span class="min-w-0 flex-1">
 							<span class="display block text-[15px] leading-snug font-medium">{r.name}</span>
-							<span class="block text-[13px] text-ink-soft">{r.nickname}</span>
+							<span class="block text-[13px] text-ink-soft">{i18n.route(r.id).nickname}</span>
 						</span>
 						<span class="text-right text-[13px] text-ink-soft tabular-nums">
-							{r.durationDays} days<br />{Math.round(r.distanceKm)} km
+							{t('itinerary.daysKm', { days: r.durationDays })}<br />{Math.round(r.distanceKm)} km
 						</span>
 					</button>
 				</li>

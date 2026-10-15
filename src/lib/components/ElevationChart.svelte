@@ -1,13 +1,14 @@
 <script lang="ts">
+	import { t, i18n } from '#lib/i18n/index.svelte.ts';
 	import { oxygenAtElevation } from '#lib/data/environment.ts';
 	import { trek } from '#lib/state/trek.svelte.ts';
 
 	const PAD = { l: 44, r: 16, t: 14, b: 26 };
 	// Vegetation zone boundaries, drawn as labelled rules like a printed section.
 	const ZONES = [
-		{ at: 2800, label: 'Rainforest ↓' },
-		{ at: 4000, label: 'Moorland ↓' },
-		{ at: 5000, label: 'Alpine desert ↓' }
+		{ at: 2800, label: 'zone.forest' as const },
+		{ at: 4000, label: 'zone.moorland' as const },
+		{ at: 5000, label: 'zone.desert' as const }
 	];
 	const PRIORITY = { summit: 0, gate: 1, hut: 2, camp: 2, lodging: 3 } as const;
 
@@ -115,7 +116,7 @@
 <div class="relative h-full w-full" bind:clientWidth={width} bind:clientHeight={height}>
 	{#if !track}
 		<p class="grid h-full place-items-center px-6 text-center text-sm text-ink-soft">
-			Select a route to see its elevation profile.
+			{t('chart.empty')}
 		</p>
 	{:else}
 		<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
@@ -125,7 +126,7 @@
 			class="block size-full touch-none select-none"
 			role="slider"
 			tabindex="0"
-			aria-label="Elevation profile scrubber"
+			aria-label={t('chart.scrubber')}
 			aria-valuemin={0}
 			aria-valuemax={Math.round(total)}
 			aria-valuenow={Math.round(trek.scrubKm ?? 0)}
@@ -153,7 +154,7 @@
 			{#each ZONES.filter((z) => z.at > yMin && z.at < yMax) as z (z.at)}
 				<line x1={PAD.l} x2={width - PAD.r} y1={y(z.at)} y2={y(z.at)} stroke="#62594b" stroke-opacity="0.5" stroke-dasharray="2 4" />
 				<text x={width - PAD.r - 2} y={y(z.at) - 4} text-anchor="end" class="display fill-ink-soft text-[10px] italic">
-					{z.label}
+					{t(z.label)}
 				</text>
 			{/each}
 
@@ -182,7 +183,7 @@
 				class="pointer-events-none absolute top-1 rounded-[2px] bg-ink px-2.5 py-1.5 text-xs whitespace-nowrap text-paper tabular-nums"
 				style="left: {Math.min(Math.max(cursor.cx + 12, PAD.l), width - 200)}px"
 			>
-				<strong class="font-semibold">{Math.round(cursor.ele).toLocaleString()} m</strong>
+				<strong class="font-semibold">{i18n.n(Math.round(cursor.ele))} m</strong>
 				<span class="text-paper/60"> · </span>{cursor.km.toFixed(1)} km
 				<span class="text-paper/60"> · </span>{oxygenAtElevation(cursor.ele)}% O₂
 			</div>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { t } from '#lib/i18n/index.svelte.ts';
 	import { Button } from 'flowbite-svelte';
 	import { Play, Pause, RotateCcw } from 'lucide-svelte';
 		import { trek } from '#lib/state/trek.svelte.ts';
@@ -14,19 +15,19 @@
 		onclick={() => trek.togglePlay()}
 	>
 		{#if trek.playing}
-			<Pause class="size-4" aria-hidden="true" /> Pause
+			<Pause class="size-4" aria-hidden="true" /> {t('play.pause')}
 		{:else if atEnd}
-			<RotateCcw class="size-4" aria-hidden="true" /> Replay
+			<RotateCcw class="size-4" aria-hidden="true" /> {t('play.replay')}
 		{:else}
-			<Play class="size-4" aria-hidden="true" /> {trek.scrubKm ? 'Resume' : trek.track ? 'Walk the route' : 'Select a route'}
+			<Play class="size-4" aria-hidden="true" /> {trek.scrubKm ? t('play.resume') : trek.track ? t('play.walk') : t('play.select')}
 		{/if}
 	</Button>
 
 	<div class="hidden items-center gap-3 sm:flex">
 		<span class="text-sm text-ink-soft tabular-nums">
-			{(trek.scrubKm ?? 0).toFixed(1)} of {trek.totalKm.toFixed(1)} km
+			{t('play.ofKm', { a: (trek.scrubKm ?? 0).toFixed(1), b: trek.totalKm.toFixed(1) })}
 		</span>
-		<div class="h-[3px] w-28 bg-rule" role="progressbar" aria-label="Trek progress" aria-valuenow={Math.round(trek.progress * 100)} aria-valuemin={0} aria-valuemax={100}>
+		<div class="h-[3px] w-28 bg-rule" role="progressbar" aria-label={t('play.progress')} aria-valuenow={Math.round(trek.progress * 100)} aria-valuemin={0} aria-valuemax={100}>
 			<div class="h-full bg-ochre" style="width: {trek.progress * 100}%"></div>
 		</div>
 	</div>
