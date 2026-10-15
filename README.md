@@ -77,9 +77,20 @@ src/routes/layout.css          design tokens (paper, ink, ochre) and type
 
 Imagery and terrain are loaded from third-party tile servers under their own terms. For production or high-traffic use, review those terms and consider your own tile provider (`style` in `src/lib/components/Map3D.svelte`).
 
+## Languages
+
+English, Kiswahili, Italiano, Français and Deutsch. The language follows `?lang=`, then the visitor's saved choice, then the browser language. Strings live in `src/lib/i18n/` (`en.ts` is the source; the other files must provide the same keys, which TypeScript enforces). Place names are proper names and stay as they are; trail data notes are English only. The translations are a first draft and corrections are welcome.
+
+## Presenting on a big screen
+
+- **Hide tools** (or press `H`) leaves only the map. Press `H` again to bring the tools back.
+- **Large labels** scales the whole interface up for projectors.
+- Pins use colour-blind-safe colours and a different icon per kind (gate, camp, hut, summit), and their names sit on top in bold. Overlapping names are hidden automatically.
+- The **speaker** button plays a generated lo-fi beat (no audio files, off by default).
+
 ## Drone view
 
-The **Drone view** button (or `?drone=1` in the URL) starts a high, near top-down orbit of the whole mountain that slowly zooms in towards the summit and back out. Dragging, scrolling, picking a place or starting playback ends it. It needs no account and works for every visitor.
+The **Drone view** button (or `?drone=1` in the URL) starts a high, near top-down orbit of the whole mountain that slowly zooms in towards the summit and back out. Choose **Free flight** (or `?drone=free`) for random angles and places around the whole mountain. Dragging, scrolling, picking a place or starting playback ends it. It needs no account and works for every visitor.
 
 ## GPS simulation and GPX
 

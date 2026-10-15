@@ -20,7 +20,8 @@ The viewer is responsive to the iframe's own size: day chips scroll, and the pro
 |---|---|---|
 | `route` | `marangu`, `machame`, `lemosho`, `rongai`, `umbwe`, `northern-circuit`, `shira`, `all` | Route to show |
 | `day` | `1`... | Open an itinerary day |
-| `drone` | `1` | Start the drone orbit |
+| `drone` | `1`, `free` | Start the drone orbit, or random free flight |
+| `lang` | `en`, `sw`, `it`, `fr`, `de` | Interface language (defaults to the visitor's browser language) |
 | `chart` | `0` | Hide the elevation profile |
 | `days` | `0` | Hide the day chips |
 
@@ -47,6 +48,7 @@ send({ type: 'showRoute' });
 send({ type: 'drone', on: true });
 send({ type: 'play', on: true });
 send({ type: 'scrub', km: 12.5 });
+send({ type: 'setLang', lang: 'sw' });
 ```
 
 Events come back to your page. Check the origin and the `source` field:

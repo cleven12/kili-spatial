@@ -1,4 +1,5 @@
 import { EMBED_ORIGINS } from '#lib/config.ts';
+import { i18n, LANGS, type Lang } from '#lib/i18n/index.svelte.ts';
 import { trek } from '#lib/state/trek.svelte.ts';
 
 /**
@@ -17,7 +18,8 @@ export type Command =
 	| { type: 'showRoute' }
 	| { type: 'drone'; on: boolean }
 	| { type: 'play'; on: boolean }
-	| { type: 'scrub'; km: number | null };
+	| { type: 'scrub'; km: number | null }
+	| { type: 'setLang'; lang: Lang };
 
 export type Event =
 	| { type: 'ready'; routes: { id: string; name: string; days: number }[] }
@@ -44,6 +46,8 @@ function isCommand(d: unknown): d is Command {
 			return typeof m.on === 'boolean';
 		case 'scrub':
 			return m.km === null || typeof m.km === 'number';
+		case 'setLang':
+			return LANGS.some((l) => l.code === m.lang);
 		default:
 			return false;
 	}
@@ -83,6 +87,9 @@ export function apply(cmd: Command) {
 			break;
 		case 'scrub':
 			trek.setScrub(cmd.km);
+			break;
+		case 'setLang':
+			i18n.set(cmd.lang);
 			break;
 	}
 }
