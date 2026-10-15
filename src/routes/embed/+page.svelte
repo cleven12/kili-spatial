@@ -6,6 +6,7 @@
 	import ElevationChart from '#lib/components/ElevationChart.svelte';
 	import LanguagePicker from '#lib/components/LanguagePicker.svelte';
 	import { t } from '#lib/i18n/index.svelte.ts';
+	import Credit from '#lib/components/Credit.svelte';
 	import { startBridge } from '#lib/embed/bridge.ts';
 	import { trek } from '#lib/state/trek.svelte.ts';
 
@@ -74,6 +75,7 @@
 <main class="relative h-dvh overflow-hidden bg-paper-2">
 	<Map3D />
 	<PlaceCard />
+	<div class="absolute top-2 right-14 z-20 max-sm:top-[6.25rem] max-sm:right-auto max-sm:left-2 sm:top-3"><Credit /></div>
 
 	<!-- Title and day chips -->
 	<div class="pointer-events-none absolute inset-x-0 top-0 z-10 flex flex-col gap-2 p-2 sm:p-3">

@@ -10,6 +10,7 @@
 	import GpsPanel from '#lib/components/GpsPanel.svelte';
 	import Toolbar from '#lib/components/Toolbar.svelte';
 	import FundModal from '#lib/components/FundModal.svelte';
+	import Credit from '#lib/components/Credit.svelte';
 	import Readout from '#lib/components/Readout.svelte';
 	import { t, i18n } from '#lib/i18n/index.svelte.ts';
 	import { trek } from '#lib/state/trek.svelte.ts';
@@ -57,6 +58,7 @@
 
 	<section class="relative min-h-0 overflow-hidden">
 		<Map3D />
+		<div class="absolute z-20 {ui.toolsHidden ? 'bottom-3 left-3' : 'top-3 left-3 max-md:top-[7.25rem]'}"><Credit /></div>
 
 		{#if !ui.toolsHidden}
 			<PlaceCard />
