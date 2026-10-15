@@ -3,31 +3,26 @@
 	import { browser } from '$app/env';
 	import type {
 		GeoJSONSource,
+		LngLatBoundsLike,
 		Map as MapLibreMap,
+		MapLayerMouseEvent,
 		Marker,
 		StyleSpecification
 	} from 'maplibre-gl';
-	import { MARANGU_GEOJSON, MARANGU_WAYPOINTS } from '#lib/data/maranguRoute.ts';
-	import {
-		STAGES,
-		TOTAL_KM,
-		coordinatesBetween,
-		coordinatesUpTo,
-		pointAtDistance
-	} from '#lib/data/route.ts';
 	import { trek } from '#lib/state/trek.svelte.ts';
+	import type { Place } from '#lib/types.ts';
 	import WaypointMarker from './WaypointMarker.svelte';
 
 	const EXAGGERATION = 1.3;
-	const HOME = { center: [37.42, -3.12] as [number, number], pitch: 65, bearing: -20, zoom: 11.5 };
-	const FLY_SECONDS = 40;
+	const HOME = { center: [37.36, -3.1] as [number, number], pitch: 60, bearing: -20, zoom: 10.6 };
+	const PADDING = { top: 70, left: 50, right: 50, bottom: 280 };
 	const ORBIT_DEG_PER_SEC = 5;
 
 	let container: HTMLDivElement;
 	let map: MapLibreMap | undefined;
 	let maplibre: typeof import('maplibre-gl') | undefined;
 	let ready = $state(false);
-	let markerCleanups: (() => void)[] = [];
+	let markers: { remove: () => void }[] = [];
 	let scrubMarker: Marker | undefined;
 	let scrubShown = false;
 	let orbitFrame = 0;
@@ -36,7 +31,12 @@
 	const prefersReducedMotion = () =>
 		browser && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-	const routeLine = MARANGU_GEOJSON.features.find((f) => f.geometry.type === 'LineString')!;
+	const emptyLine: GeoJSON.Feature = {
+		type: 'Feature',
+		properties: {},
+		geometry: { type: 'LineString', coordinates: [] }
+	};
+	const emptyCollection: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] };
 
 	const style: StyleSpecification = {
 		version: 8,
@@ -57,7 +57,7 @@
 				tileSize: 256,
 				maxzoom: 14,
 				encoding: 'terrarium',
-				attribution: 'Terrain: Mapzen / AWS Terrain Tiles'
+				attribution: 'Terrain: Mapzen / AWS Terrain Tiles · Routes: © OpenStreetMap contributors'
 			},
 			hillshadeSource: {
 				type: 'raster-dem',
@@ -103,6 +103,7 @@
 	};
 
 	const shortestAngle = (from: number, to: number) => ((((to - from) % 360) + 540) % 360) - 180;
+	const duration = (ms: number) => (prefersReducedMotion() ? 0 : ms);
 
 	function stopOrbit() {
 		cancelAnimationFrame(orbitFrame);
@@ -127,103 +128,172 @@
 		orbitFrame = requestAnimationFrame(tick);
 	}
 
-	function flyToWaypoint(id: string, orbit: boolean) {
-		const wp = MARANGU_WAYPOINTS.find((w) => w.id === id);
-		if (!map || !wp) return;
+	function boundsOf(coords: [number, number][]): LngLatBoundsLike {
+		const lons = coords.map((c) => c[0]);
+		const lats = coords.map((c) => c[1]);
+		return [
+			[Math.min(...lons), Math.min(...lats)],
+			[Math.max(...lons), Math.max(...lats)]
+		];
+	}
+
+	/** Compass bearing from one point to another, so the camera faces the summit. */
+	function bearingTo(from: [number, number], to: [number, number]): number {
+		const r = (d: number) => (d * Math.PI) / 180;
+		const y = Math.sin(r(to[0] - from[0])) * Math.cos(r(to[1]));
+		const x =
+			Math.cos(r(from[1])) * Math.sin(r(to[1])) -
+			Math.sin(r(from[1])) * Math.cos(r(to[1])) * Math.cos(r(to[0] - from[0]));
+		return ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360;
+	}
+
+	function flyToPlace(place: Place) {
+		if (!map) return;
 		stopOrbit();
+		const summit = trek.placeById.get('uhuru-peak');
+		const heading =
+			summit && summit.id !== place.id ? bearingTo(place.coordinates, summit.coordinates) : -45;
 		map.flyTo({
-			center: wp.coordinates,
-			...wp.cameraSettings,
-			duration: prefersReducedMotion() ? 0 : 4000,
+			center: place.coordinates,
+			zoom: place.kind === 'lodging' ? 14 : 14.5,
+			pitch: 62,
+			bearing: heading,
+			duration: duration(3500),
 			curve: 1.5,
 			essential: true
 		});
-		if (orbit) map.once('moveend', () => trek.activeStage !== null && startOrbit());
 	}
 
-	function setSourceData(id: string, coords: [number, number][]) {
-		const s = map?.getSource(id) as GeoJSONSource | undefined;
-		s?.setData({
+	function setLine(id: string, coords: [number, number][]) {
+		const src = map?.getSource(id) as GeoJSONSource | undefined;
+		src?.setData({
 			type: 'Feature',
 			properties: {},
-			geometry: { type: 'LineString', coordinates: coords.length > 1 ? coords : [...coords, ...coords] }
+			geometry: { type: 'LineString', coordinates: coords.length > 1 ? coords : [] }
 		});
 	}
 
-	function addRouteLayers(m: MapLibreMap) {
-		const empty: GeoJSON.Feature = {
-			type: 'Feature',
-			properties: {},
-			geometry: { type: 'LineString', coordinates: [] }
-		};
-		m.addSource('route', { type: 'geojson', data: routeLine as GeoJSON.Feature });
-		m.addSource('progress', { type: 'geojson', data: empty });
-		m.addSource('stage', { type: 'geojson', data: empty });
-
+	function addLayers(m: MapLibreMap) {
 		const round = { 'line-cap': 'round', 'line-join': 'round' } as const;
-		// Whole route: dashed paper line, like a printed trail on a map.
+		m.addSource('routes-all', { type: 'geojson', data: emptyCollection });
+		m.addSource('progress', { type: 'geojson', data: emptyLine });
+		m.addSource('stage', { type: 'geojson', data: emptyLine });
+		m.addSource('gaps', { type: 'geojson', data: emptyCollection });
+		m.addSource('places', { type: 'geojson', data: emptyCollection });
+		m.addSource('lodging', {
+			type: 'geojson',
+			data: emptyCollection,
+			cluster: true,
+			clusterRadius: 38,
+			clusterMaxZoom: 13
+		});
+
+		// Routes not selected: faint dashed paper lines.
+		m.addLayer({
+			id: 'routes-bg',
+			type: 'line',
+			source: 'routes-all',
+			layout: { 'line-join': 'round' },
+			paint: { 'line-color': '#fbf6ea', 'line-width': 1.6, 'line-dasharray': [2, 2], 'line-opacity': 0.5 }
+		});
+		// Selected route: bolder dashed paper line, like a printed trail on a map.
 		m.addLayer({
 			id: 'route-core',
 			type: 'line',
-			source: 'route',
+			source: 'routes-all',
+			filter: ['==', ['get', 'id'], ''],
 			layout: { 'line-join': 'round' },
-			paint: { 'line-color': '#fbf6ea', 'line-width': 2.5, 'line-dasharray': [2, 1.6], 'line-opacity': 0.95 }
+			paint: { 'line-color': '#fbf6ea', 'line-width': 2.6, 'line-dasharray': [2, 1.6], 'line-opacity': 0.98 }
 		});
-		// Selected stage: solid ochre on a paper casing.
+		// Stretches that are not real trail in OSM data: dotted ochre.
 		m.addLayer({
-			id: 'stage-casing',
+			id: 'gaps',
 			type: 'line',
-			source: 'stage',
-			layout: round,
-			paint: { 'line-color': '#fbf6ea', 'line-width': 8 }
+			source: 'gaps',
+			paint: { 'line-color': '#c4571f', 'line-width': 3, 'line-dasharray': [0.5, 2] }
 		});
-		m.addLayer({
-			id: 'stage-core',
-			type: 'line',
-			source: 'stage',
-			layout: round,
-			paint: { 'line-color': '#c4571f', 'line-width': 4.5 }
-		});
-		// Distance walked so far.
-		m.addLayer({
-			id: 'progress-casing',
-			type: 'line',
-			source: 'progress',
-			layout: round,
-			paint: { 'line-color': '#fbf6ea', 'line-width': 7 }
-		});
-		m.addLayer({
-			id: 'progress-core',
-			type: 'line',
-			source: 'progress',
-			layout: round,
-			paint: { 'line-color': '#c4571f', 'line-width': 4 }
-		});
-	}
+		m.addLayer({ id: 'stage-casing', type: 'line', source: 'stage', layout: round, paint: { 'line-color': '#fbf6ea', 'line-width': 8 } });
+		m.addLayer({ id: 'stage-core', type: 'line', source: 'stage', layout: round, paint: { 'line-color': '#c4571f', 'line-width': 4.5 } });
+		m.addLayer({ id: 'progress-casing', type: 'line', source: 'progress', layout: round, paint: { 'line-color': '#fbf6ea', 'line-width': 7 } });
+		m.addLayer({ id: 'progress-core', type: 'line', source: 'progress', layout: round, paint: { 'line-color': '#c4571f', 'line-width': 4 } });
 
-	function addMarkers(m: MapLibreMap, ml: typeof import('maplibre-gl')) {
-		for (const wp of MARANGU_WAYPOINTS) {
-			const el = document.createElement('div');
-			const comp = mount(WaypointMarker, {
-				target: el,
-				props: {
-					waypoint: wp,
-					get active() {
-						return trek.activeWaypoint === wp.id;
-					},
-					onselect: (id: string) => trek.focusWaypoint(id)
-				}
-			});
-			const marker = new ml.Marker({ element: el, anchor: 'bottom' }).setLngLat(wp.coordinates).addTo(m);
-			markerCleanups.push(() => {
-				marker.remove();
-				void unmount(comp);
-			});
+		// Places that are not stops on the selected route.
+		m.addLayer({
+			id: 'places-dot',
+			type: 'circle',
+			source: 'places',
+			filter: ['!', ['get', 'onRoute']],
+			paint: {
+				'circle-radius': 5,
+				'circle-color': '#1f1b16',
+				'circle-stroke-color': '#f4eee2',
+				'circle-stroke-width': 2
+			}
+		});
+
+		// Lodging, clustered; hidden until the toggle is on.
+		const hidden = { visibility: 'none' } as const;
+		m.addLayer({
+			id: 'lodging-cluster',
+			type: 'circle',
+			source: 'lodging',
+			filter: ['has', 'point_count'],
+			layout: hidden,
+			paint: {
+				'circle-color': '#f4eee2',
+				'circle-stroke-color': '#1f1b16',
+				'circle-stroke-width': 1.5,
+				'circle-radius': ['step', ['get', 'point_count'], 13, 10, 17, 30, 22]
+			}
+		});
+		m.addLayer({
+			id: 'lodging-count',
+			type: 'symbol',
+			source: 'lodging',
+			filter: ['has', 'point_count'],
+			layout: {
+				...hidden,
+				'text-field': ['get', 'point_count_abbreviated'],
+				'text-font': ['Open Sans Semibold'],
+				'text-size': 11
+			},
+			paint: { 'text-color': '#1f1b16' }
+		});
+		m.addLayer({
+			id: 'lodging-point',
+			type: 'circle',
+			source: 'lodging',
+			filter: ['!', ['has', 'point_count']],
+			layout: hidden,
+			paint: {
+				'circle-radius': 5,
+				'circle-color': '#f4eee2',
+				'circle-stroke-color': '#1f1b16',
+				'circle-stroke-width': 2
+			}
+		});
+
+		for (const layer of ['places-dot', 'lodging-point', 'lodging-cluster']) {
+			m.on('mouseenter', layer, () => (m.getCanvas().style.cursor = 'pointer'));
+			m.on('mouseleave', layer, () => (m.getCanvas().style.cursor = ''));
 		}
+		const pickPlace = (e: MapLayerMouseEvent) => {
+			const id = e.features?.[0]?.properties?.id;
+			if (id) trek.focusPlace(String(id));
+		};
+		m.on('click', 'places-dot', pickPlace);
+		m.on('click', 'lodging-point', pickPlace);
+		m.on('click', 'lodging-cluster', async (e) => {
+			const f = e.features?.[0];
+			if (!f || f.geometry.type !== 'Point') return;
+			const src = m.getSource('lodging') as GeoJSONSource;
+			const zoom = await src.getClusterExpansionZoom(f.properties.cluster_id);
+			m.easeTo({ center: f.geometry.coordinates as [number, number], zoom: zoom + 0.5, duration: duration(600) });
+		});
 
 		const dot = document.createElement('div');
 		dot.className = 'scrub-dot';
-		scrubMarker = new ml.Marker({ element: dot });
+		scrubMarker = new maplibre!.Marker({ element: dot });
 	}
 
 	onMount(() => {
@@ -247,8 +317,7 @@
 
 			m.on('load', () => {
 				m.setTerrain({ source: 'terrainSource', exaggeration: EXAGGERATION });
-				addRouteLayers(m);
-				addMarkers(m, maplibre!);
+				addLayers(m);
 				ready = true;
 				trek.mapReady = true;
 			});
@@ -273,8 +342,8 @@
 			disposed = true;
 			stopOrbit();
 			stopFly();
-			markerCleanups.forEach((fn) => fn());
-			markerCleanups = [];
+			markers.forEach((mk) => mk.remove());
+			markers = [];
 			scrubMarker?.remove();
 			map?.remove();
 			map = undefined;
@@ -282,52 +351,175 @@
 		};
 	});
 
-	// Camera commands from the UI (waypoint click, stage select, overview).
+	const dataReady = $derived(ready && trek.status === 'ready');
+
+	// Push the dataset into map sources once both are ready.
 	$effect(() => {
-		const cmd = trek.command;
-		if (!ready || !map || !cmd) return;
-		stopFly();
-		if (cmd.kind === 'waypoint') {
-			flyToWaypoint(cmd.id, false);
-		} else if (cmd.kind === 'stage') {
-			const stage = STAGES.find((s) => s.id === cmd.id);
-			if (stage) flyToWaypoint(stage.to.id, true);
-		} else {
-			stopOrbit();
-			map.flyTo({ ...HOME, duration: prefersReducedMotion() ? 0 : 3500, essential: true });
+		if (!dataReady || !map) return;
+		(map.getSource('routes-all') as GeoJSONSource).setData({
+			type: 'FeatureCollection',
+			features: Object.values(trek.routes).map((r) => ({
+				type: 'Feature',
+				properties: { id: r.id, name: r.name },
+				geometry: { type: 'LineString', coordinates: r.coordinates.map((c) => [c[0], c[1]]) }
+			}))
+		});
+		(map.getSource('lodging') as GeoJSONSource).setData({
+			type: 'FeatureCollection',
+			features: trek.lodging.map((p) => ({
+				type: 'Feature',
+				properties: { id: p.id, name: p.name },
+				geometry: { type: 'Point', coordinates: p.coordinates }
+			}))
+		});
+	});
+
+	// Route selection: filters, gaps, "places not on this route" and stop markers.
+	$effect(() => {
+		if (!dataReady || !map) return;
+		const m = map;
+		const route = trek.route;
+		const selected = route?.id ?? '';
+		m.setFilter('routes-bg', ['!=', ['get', 'id'], selected]);
+		m.setFilter('route-core', ['==', ['get', 'id'], selected]);
+		m.setPaintProperty('routes-bg', 'line-opacity', route ? 0.4 : 0.9);
+
+		const stops = new Set(route?.marks.filter((mk) => mk.kind === 'stop').map((mk) => mk.place));
+		(m.getSource('places') as GeoJSONSource).setData({
+			type: 'FeatureCollection',
+			features: trek.places.map((p) => ({
+				type: 'Feature',
+				properties: { id: p.id, name: p.name, onRoute: stops.has(p.id) },
+				geometry: { type: 'Point', coordinates: p.coordinates }
+			}))
+		});
+
+		const track = trek.track;
+		(m.getSource('gaps') as GeoJSONSource).setData({
+			type: 'FeatureCollection',
+			features: (route?.gaps ?? []).map(([a, b]) => ({
+				type: 'Feature',
+				properties: {},
+				geometry: { type: 'LineString', coordinates: track!.coordinatesBetween(a, b) }
+			}))
+		});
+	});
+
+	// HTML markers: stops on the selected route plus the place being inspected.
+	$effect(() => {
+		if (!dataReady || !map || !maplibre) return;
+		const m = map;
+		const ml = maplibre;
+		const ids = new Set(trek.route?.marks.filter((mk) => mk.kind === 'stop').map((mk) => mk.place));
+		if (trek.activePlace) ids.add(trek.activePlace);
+
+		markers.forEach((mk) => mk.remove());
+		markers = [];
+		for (const id of ids) {
+			const place = trek.placeById.get(id);
+			if (!place) continue;
+			const el = document.createElement('div');
+			const comp = mount(WaypointMarker, {
+				target: el,
+				props: {
+					place,
+					get active() {
+						return trek.activePlace === id;
+					},
+					onselect: (pid: string) => trek.focusPlace(pid)
+				}
+			});
+			const marker = new ml.Marker({ element: el, anchor: 'bottom' }).setLngLat(place.coordinates).addTo(m);
+			markers.push({
+				remove: () => {
+					marker.remove();
+					void unmount(comp);
+				}
+			});
 		}
 	});
 
-	// Stage highlight.
+	// Lodging layer visibility.
 	$effect(() => {
-		if (!ready) return;
-		const stage = STAGES.find((s) => s.id === trek.activeStage);
-		setSourceData('stage', stage ? coordinatesBetween(stage.startKm, stage.endKm) : []);
+		if (!dataReady || !map) return;
+		const v = trek.showLodging ? 'visible' : 'none';
+		for (const l of ['lodging-cluster', 'lodging-count', 'lodging-point']) map.setLayoutProperty(l, 'visibility', v);
+	});
+
+	// Camera commands from the UI.
+	$effect(() => {
+		const cmd = trek.command;
+		if (!dataReady || !map || !cmd) return;
+		const m = map;
+		stopFly();
+		stopOrbit();
+		const route = untrack(() => trek.route);
+		const track = untrack(() => trek.track);
+
+		if (cmd.kind === 'place') {
+			const place = untrack(() => trek.placeById.get(cmd.id));
+			if (place) flyToPlace(place);
+		} else if (cmd.kind === 'day' && route && track) {
+			const day = route.days.find((d) => d.day === cmd.day);
+			if (!day) return;
+			const coords = track.coordinatesBetween(day.startKm, day.endKm);
+			m.fitBounds(boundsOf(coords), {
+				padding: PADDING,
+				pitch: 62,
+				bearing: bearingTo(coords[0], coords[coords.length - 1]),
+				maxZoom: 14.5,
+				duration: duration(3000),
+				essential: true
+			});
+			m.once('moveend', () => trek.activeDay !== null && startOrbit());
+		} else if (cmd.kind === 'route' && route) {
+			const [w, s, e, n] = route.bbox;
+			m.fitBounds([[w, s], [e, n]], {
+				padding: PADDING,
+				pitch: 58,
+				bearing: -20,
+				maxZoom: 13,
+				duration: duration(3500),
+				essential: true
+			});
+		} else {
+			m.flyTo({ ...HOME, duration: duration(3500), essential: true });
+		}
+	});
+
+	// Stage (day) highlight.
+	$effect(() => {
+		if (!dataReady) return;
+		const day = trek.route?.days.find((d) => d.day === trek.activeDay);
+		const track = trek.track;
+		setLine('stage', day && track ? track.coordinatesBetween(day.startKm, day.endKm) : []);
 	});
 
 	// Progress trail + scrub marker follow scrubKm.
 	$effect(() => {
-		if (!ready || !map || !scrubMarker) return;
+		if (!dataReady || !map || !scrubMarker) return;
 		const km = trek.scrubKm;
-		if (km === null) {
+		const track = trek.track;
+		if (km === null || !track) {
 			scrubMarker.remove();
 			scrubShown = false;
-			setSourceData('progress', []);
+			setLine('progress', []);
 			return;
 		}
-		const p = pointAtDistance(km);
+		const p = track.pointAt(km);
 		scrubMarker.setLngLat([p.lng, p.lat]);
 		if (!scrubShown) {
 			scrubMarker.addTo(map);
 			scrubShown = true;
 		}
-		setSourceData('progress', coordinatesUpTo(km));
+		setLine('progress', track.coordinatesUpTo(km));
 	});
 
-	// Cinematic fly-through.
+	// Cinematic fly-through along the selected route.
 	$effect(() => {
-		if (!ready || !map) return;
-		if (!trek.playing) {
+		if (!dataReady || !map) return;
+		const track = trek.track;
+		if (!trek.playing || !track) {
 			stopFly();
 			return;
 		}
@@ -335,29 +527,31 @@
 		stopOrbit();
 		m.stop();
 
+		const total = track.total;
 		const resumeKm = untrack(() => trek.scrubKm);
-		let km = resumeKm !== null && resumeKm < TOTAL_KM - 0.05 ? resumeKm : 0;
+		let km = resumeKm !== null && resumeKm < total - 0.05 ? resumeKm : 0;
 		let bearing = m.getBearing();
 		let last = performance.now();
-		const speed = TOTAL_KM / FLY_SECONDS;
+		// About 0.7 s per km, bounded so short and long routes both feel right.
+		const speed = total / Math.min(90, Math.max(30, total * 0.7));
 
 		const tick = (now: number) => {
 			const dt = Math.min(0.5, (now - last) / 1000);
 			last = now;
-			km = Math.min(TOTAL_KM, km + speed * dt);
-			const p = pointAtDistance(km);
-			const ahead = pointAtDistance(km + 2.5);
-			const t = km / TOTAL_KM;
+			km = Math.min(total, km + speed * dt);
+			const p = track.pointAt(km);
+			const ahead = track.pointAt(km + 2.5);
+			const t = km / total;
 			// Chase the trail heading, smoothed so corners don't whip the camera.
 			bearing += shortestAngle(bearing, ahead.bearing) * (1 - Math.exp(-dt * 1.4));
 			m.jumpTo({
 				center: [p.lng, p.lat],
 				bearing,
-				pitch: 62 + 12 * t,
-				zoom: 13 + 1.6 * t
+				pitch: 62 + 10 * Math.sin(Math.PI * t),
+				zoom: 13.2 + 1.2 * t
 			});
 			trek.setScrub(km);
-			if (km >= TOTAL_KM) {
+			if (km >= total) {
 				trek.playing = false;
 				return;
 			}
@@ -378,9 +572,11 @@
 	></div>
 </div>
 
-{#if !ready}
+{#if !dataReady}
 	<div class="absolute inset-0 grid place-items-center bg-paper-2">
-		<p class="display text-lg text-ink-soft italic">Loading terrain…</p>
+		<p class="display text-lg text-ink-soft italic">
+			{trek.status === 'error' ? `Could not load route data: ${trek.error}` : 'Loading terrain…'}
+		</p>
 	</div>
 {/if}
 
