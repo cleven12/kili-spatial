@@ -1,11 +1,12 @@
 <script lang="ts">
+	import { t, i18n } from '#lib/i18n/index.svelte.ts';
 	import { Select } from 'flowbite-svelte';
-	import { Download, Plane, LocateFixed, Pause, Play, Satellite, Upload, X } from 'lucide-svelte';
+	import { Download, LocateFixed, Pause, Play, Satellite, Upload, X } from 'lucide-svelte';
+	import { ui } from '#lib/state/ui.svelte.ts';
 	import { gps, RATES } from '#lib/state/gps.svelte.ts';
 	import { trek } from '#lib/state/trek.svelte.ts';
 	import { formatClock } from '#lib/sim/timeline.ts';
 
-	let open = $state(false);
 	let fileInput: HTMLInputElement | undefined = $state();
 
 	const fix = $derived(gps.fix);
@@ -31,39 +32,21 @@
 	const f2 = (n: number) => (Number.isFinite(n) ? Math.round(n).toLocaleString() : '—');
 
 	const sourceLabel = $derived(
-		gps.mode === 'sim' ? 'Simulated GPS' : gps.mode === 'import' ? `GPX: ${gps.imported?.name}` : gps.mode === 'live' ? 'Your location' : ''
+		gps.mode === 'sim' ? t('gps.simulated') : gps.mode === 'import' ? t('gps.fromFile', { name: gps.imported?.name ?? '' }) : gps.mode === 'live' ? t('gps.yourLocation') : ''
 	);
 </script>
 
-<div class="absolute top-3 right-14 z-10 flex flex-col items-end gap-2 max-md:top-[4.25rem] max-md:right-3">
-	<button
-		type="button"
-		class="flex items-center gap-2 border px-3 py-1.5 text-sm font-medium shadow-[0_2px_8px_rgb(0_0_0/0.25)] {trek.drone ? 'border-ink bg-ink text-paper' : 'border-ink bg-paper hover:text-ochre'}"
-		aria-pressed={trek.drone}
-		disabled={!trek.mapReady}
-		onclick={() => trek.toggleDrone()}
-	>
-		<Plane class="size-4" aria-hidden="true" /> {trek.drone ? 'Stop drone view' : 'Drone view'}
-	</button>
-	{#if !open}
-		<button
-			type="button"
-			class="flex items-center gap-2 border border-ink bg-paper px-3 py-1.5 text-sm font-medium shadow-[0_2px_8px_rgb(0_0_0/0.25)] hover:text-ochre"
-			onclick={() => (open = true)}
-		>
-			<Satellite class="size-4" aria-hidden="true" /> GPS{gps.mode !== 'off' ? ' · on' : ''}
-		</button>
-	{:else}
+{#if ui.gpsOpen}
 		<section
-			aria-label="GPS simulation"
+			aria-label={t('gps.panel')}
 			class="max-h-[calc(100dvh-15rem)] w-[min(21rem,calc(100vw-1.5rem))] overflow-y-auto border border-rule bg-paper px-4 py-3 shadow-[0_6px_24px_rgb(0_0_0/0.25)]"
 		>
 			<div class="flex items-start justify-between gap-3">
 				<div>
-					<p class="label">{sourceLabel || 'Position source'}</p>
-					<h3 class="display text-lg leading-tight font-medium">GPS</h3>
+					<p class="label">{sourceLabel || t('gps.source')}</p>
+					<h3 class="display text-lg leading-tight font-medium">{t('gps.title')}</h3>
 				</div>
-				<button type="button" class="rounded-sm p-1 text-ink-soft hover:text-ochre" aria-label="Close GPS panel" onclick={() => (open = false)}>
+				<button type="button" class="rounded-sm p-1 text-ink-soft hover:text-ochre" aria-label={t('gps.close')} onclick={() => (ui.gpsOpen = false)}>
 					<X class="size-4" aria-hidden="true" />
 				</button>
 			</div>
@@ -73,18 +56,18 @@
 					type="button"
 					class="flex flex-col items-center gap-1 border px-2 py-2 disabled:opacity-40 {gps.mode === 'sim' ? 'border-ink bg-paper-2' : 'border-rule hover:border-ink'}"
 					disabled={!trek.route}
-					title={trek.route ? `Simulate a trek on ${trek.route.name}` : 'Select a route to simulate'}
+					title={trek.route ? t('gps.simulateTip', { name: trek.route.name }) : t('gps.simulateNone')}
 					onclick={() => gps.startSim()}
 				>
-					<Satellite class="size-4" aria-hidden="true" /> Simulate
+					<Satellite class="size-4" aria-hidden="true" /> {t('gps.simulate')}
 				</button>
 				<button
 					type="button"
 					class="flex flex-col items-center gap-1 border px-2 py-2 {gps.mode === 'import' ? 'border-ink bg-paper-2' : 'border-rule hover:border-ink'}"
-					title="Replay a GPX file"
+					title={t('gps.gpxTip')}
 					onclick={() => fileInput?.click()}
 				>
-					<Upload class="size-4" aria-hidden="true" /> GPX file
+					<Upload class="size-4" aria-hidden="true" /> {t('gps.gpxFile')}
 				</button>
 				<input
 					bind:this={fileInput}
@@ -100,15 +83,15 @@
 				<button
 					type="button"
 					class="flex flex-col items-center gap-1 border px-2 py-2 {gps.mode === 'live' ? 'border-ink bg-paper-2' : 'border-rule hover:border-ink'}"
-					title="Show your device location (stays in your browser)"
+					title={t('gps.myLocationTip')}
 					onclick={() => gps.startLive()}
 				>
-					<LocateFixed class="size-4" aria-hidden="true" /> My location
+					<LocateFixed class="size-4" aria-hidden="true" /> {t('gps.myLocation')}
 				</button>
 			</div>
 
 			{#if gps.error}
-				<p class="mt-3 border-l-[3px] border-ochre bg-paper-2 px-3 py-2 text-[13px]" role="alert">{gps.error}</p>
+				<p class="mt-3 border-l-[3px] border-ochre bg-paper-2 px-3 py-2 text-[13px]" role="alert">{t(gps.error)}</p>
 			{/if}
 
 			{#if tl}
@@ -118,10 +101,10 @@
 						class="flex items-center gap-2 bg-ink px-3 py-1.5 text-sm font-medium text-paper hover:bg-ochre"
 						onclick={() => gps.toggle()}
 					>
-						{#if gps.playing}<Pause class="size-4" aria-hidden="true" /> Pause{:else}<Play class="size-4" aria-hidden="true" /> {gps.atEnd ? 'Replay' : 'Play'}{/if}
+						{#if gps.playing}<Pause class="size-4" aria-hidden="true" /> {t('gps.pause')}{:else}<Play class="size-4" aria-hidden="true" /> {gps.atEnd ? t('gps.replay') : t('gps.play')}{/if}
 					</button>
 					<p class="text-sm tabular-nums">
-						{#if fix}{fix.day ? `Day ${fix.day} · ` : ''}{formatClock(fix.time)} <span class="text-ink-soft">EAT</span>{/if}
+						{#if fix}{fix.day ? `${t('gps.day', { n: fix.day })} · ` : ''}{formatClock(fix.time)} <span class="text-ink-soft">EAT</span>{/if}
 					</p>
 				</div>
 
@@ -133,7 +116,7 @@
 						max={tl.duration}
 						step="1"
 						value={gps.clock}
-						aria-label="Timeline"
+						aria-label={t('gps.timeline')}
 						oninput={(e) => {
 							gps.pause();
 							gps.setClock(+e.currentTarget.value);
@@ -148,12 +131,12 @@
 
 				<div class="mt-2 grid grid-cols-2 gap-2">
 					<label class="block">
-						<span class="label">Speed</span>
+						<span class="label">{t('gps.speed')}</span>
 						<Select size="sm" class="mt-1 rounded-sm border-rule bg-paper text-ink" items={rateItems} value={String(gps.rate)} onchange={(e: Event) => (gps.rate = +(e.target as HTMLSelectElement).value)} />
 					</label>
 					{#if gps.mode === 'sim'}
 						<label class="block">
-							<span class="label">Start date</span>
+							<span class="label">{t('gps.startDate')}</span>
 							<input type="date" class="mt-1 w-full border border-rule bg-paper px-2 py-[7px] text-sm" bind:value={gps.startDate} onchange={() => gps.startSim()} />
 						</label>
 					{/if}
@@ -162,18 +145,18 @@
 
 			{#if fix}
 				<dl class="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 border-t border-rule pt-3 text-sm">
-					<div><dt class="label">Latitude</dt><dd class="tabular-nums">{fix.lat.toFixed(5)}</dd></div>
-					<div><dt class="label">Longitude</dt><dd class="tabular-nums">{fix.lng.toFixed(5)}</dd></div>
-					<div><dt class="label">Altitude</dt><dd class="tabular-nums">{f2(fix.ele)} m</dd></div>
+					<div><dt class="label">{t('gps.lat')}</dt><dd class="tabular-nums">{fix.lat.toFixed(5)}</dd></div>
+					<div><dt class="label">{t('gps.lng')}</dt><dd class="tabular-nums">{fix.lng.toFixed(5)}</dd></div>
+					<div><dt class="label">{t('gps.alt')}</dt><dd class="tabular-nums">{f2(fix.ele)} m</dd></div>
 					{#if gps.mode !== 'import'}
-						<div><dt class="label">Accuracy</dt><dd class="tabular-nums">±{f2(fix.accuracy)} m</dd></div>
+						<div><dt class="label">{t('gps.accuracy')}</dt><dd class="tabular-nums">±{f2(fix.accuracy)} m</dd></div>
 					{/if}
-					<div><dt class="label">Speed</dt><dd class="tabular-nums">{fix.speedKmh.toFixed(1)} km/h</dd></div>
-					<div><dt class="label">Heading</dt><dd class="tabular-nums">{f2(fix.heading)}°</dd></div>
+					<div><dt class="label">{t('gps.speedLabel')}</dt><dd class="tabular-nums">{fix.speedKmh.toFixed(1)} km/h</dd></div>
+					<div><dt class="label">{t('gps.heading')}</dt><dd class="tabular-nums">{f2(fix.heading)}°</dd></div>
 				</dl>
 				<div class="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm">
 					<label class="flex items-center gap-2">
-						<input type="checkbox" class="accent-[#c4571f]" bind:checked={gps.follow} /> Camera follows
+						<input type="checkbox" class="accent-[#c4571f]" bind:checked={gps.follow} /> {t('gps.follow')}
 					</label>
 					<div class="flex gap-3">
 						{#if gps.mode === 'sim'}
@@ -181,18 +164,17 @@
 								<Download class="size-4" aria-hidden="true" /> GPX
 							</button>
 						{/if}
-						<button type="button" class="underline decoration-rule underline-offset-4 hover:text-ochre" onclick={() => gps.stop()}>Stop</button>
+						<button type="button" class="underline decoration-rule underline-offset-4 hover:text-ochre" onclick={() => gps.stop()}>{t('gps.stop')}</button>
 					</div>
 				</div>
 			{/if}
 
 			<p class="mt-3 text-[12px] text-ink-soft">
 				{gps.mode === 'live'
-					? 'Real device location. Not a navigation aid; this map is approximate.'
+					? t('gps.noteLive')
 					: gps.mode === 'import'
-						? 'Your file is read in this browser and never uploaded.'
-						: 'Simulated positions are synthetic, built from a walking-pace model. They are not a recorded track.'}
+						? t('gps.noteImport')
+						: t('gps.noteSim')}
 			</p>
 		</section>
-	{/if}
-</div>
+{/if}

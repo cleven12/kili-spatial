@@ -101,3 +101,19 @@ a:focus-visible,
 .maplibregl-ctrl-bottom-left {
 	margin-bottom: 14.5rem;
 }
+
+/* Camp and hut labels in the overview appear once zoomed in, to keep the mountain readable. */
+.kili-minor {
+	display: none;
+}
+.maplibregl-map[data-near='1'] .kili-minor {
+	display: inline-block;
+}
+
+/* Large-label mode for projectors and big screens: everything sized in rem scales together. */
+html.big {
+	font-size: 125%;
+}
+.pin-label.kili-hide {
+	visibility: hidden;
+}

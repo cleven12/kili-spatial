@@ -29,6 +29,8 @@ class TrekState {
 	playing = $state(false);
 	/** Drone view: a slow, high orbit of the whole mountain. */
 	drone = $state(false);
+	/** orbit: steady circle with zoom breathing. free: random angles and places. */
+	droneStyle = $state<'orbit' | 'free'>('orbit');
 	activeDay = $state<number | null>(null);
 	/** Place whose detail card is open. */
 	activePlace = $state<string | null>(null);
@@ -69,7 +71,9 @@ class TrekState {
 			const wanted = params.get('route');
 			this.routeId = wanted === 'all' ? null : wanted && data.routes[wanted] ? wanted : DEFAULT_ROUTE;
 			this.command = this.routeId ? { kind: 'route' } : { kind: 'overview' };
-			this.drone = params.get('drone') === '1';
+			const drone = params.get('drone');
+			this.drone = drone === '1' || drone === 'free';
+			if (drone === 'free') this.droneStyle = 'free';
 			this.status = 'ready';
 		} catch (err) {
 			this.error = err instanceof Error ? err.message : String(err);

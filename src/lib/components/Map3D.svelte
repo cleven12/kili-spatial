@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { t } from '#lib/i18n/index.svelte.ts';
 	import { onMount, mount, unmount, untrack } from 'svelte';
 	import { browser } from '$app/env';
 	import type {
@@ -114,6 +115,30 @@
 
 	const shortestAngle = (from: number, to: number) => ((((to - from) % 360) + 540) % 360) - 180;
 	const duration = (ms: number) => (prefersReducedMotion() ? 0 : ms);
+
+	/** Hide name labels that would overlap a more important one, so the view stays readable. */
+	let declutterAt = 0;
+	function declutter() {
+		const root = map?.getContainer();
+		if (!root) return;
+		const labels = [...root.querySelectorAll<HTMLElement>('.pin-label')];
+		for (const l of labels) l.classList.remove('kili-hide');
+		const kept: DOMRect[] = [];
+		const ordered = labels
+			.filter((l) => l.offsetParent !== null)
+			.sort((a, b) => Number(a.dataset.p) - Number(b.dataset.p));
+		for (const l of ordered) {
+			const r = l.getBoundingClientRect();
+			if (kept.some((k) => r.left < k.right + 4 && r.right > k.left - 4 && r.top < k.bottom + 2 && r.bottom > k.top - 2)) l.classList.add('kili-hide');
+			else kept.push(r);
+		}
+	}
+	function scheduleDeclutter() {
+		const now = performance.now();
+		if (now - declutterAt < 250) return;
+		declutterAt = now;
+		requestAnimationFrame(declutter);
+	}
 
 	function stopOrbit() {
 		cancelAnimationFrame(orbitFrame);
@@ -344,6 +369,12 @@
 				trek.mapReady = true;
 			});
 
+			const nearFlag = () => (m.getContainer().dataset.near = m.getZoom() >= 11.6 ? '1' : '0');
+			m.on('zoom', nearFlag);
+			m.on('render', scheduleDeclutter);
+			m.on('idle', declutter);
+			m.on('load', nearFlag);
+
 			m.on('move', () => {
 				if (trek.scrubKm !== null) return;
 				const e = m.queryTerrainElevation(m.getCenter());
@@ -409,7 +440,7 @@
 		m.setFilter('route-core', ['==', ['get', 'id'], selected]);
 		m.setPaintProperty('routes-bg', 'line-opacity', route ? 0.4 : 0.9);
 
-		const stops = new Set(route?.marks.filter((mk) => mk.kind === 'stop').map((mk) => mk.place));
+		const stops = new Set(route ? route.marks.filter((mk) => mk.kind === 'stop').map((mk) => mk.place) : trek.places.map((p) => p.id));
 		(m.getSource('places') as GeoJSONSource).setData({
 			type: 'FeatureCollection',
 			features: trek.places.map((p) => ({
@@ -435,7 +466,8 @@
 		if (!dataReady || !map || !maplibre) return;
 		const m = map;
 		const ml = maplibre;
-		const ids = new Set(trek.route?.marks.filter((mk) => mk.kind === 'stop').map((mk) => mk.place));
+		const ids = new Set(trek.route ? trek.route.marks.filter((mk) => mk.kind === 'stop').map((mk) => mk.place) : trek.places.map((p) => p.id));
+		const overview = !trek.route;
 		if (trek.activePlace) ids.add(trek.activePlace);
 
 		markers.forEach((mk) => mk.remove());
@@ -448,6 +480,7 @@
 				target: el,
 				props: {
 					place,
+					minor: overview && (place.kind === 'camp' || place.kind === 'hut'),
 					get active() {
 						return trek.activePlace === id;
 					},
@@ -595,7 +628,8 @@
 		}
 	});
 
-	// Drone view: hover high above the summit, orbiting while slowly breathing in and out.
+	// Drone view: hover high above the summit. "orbit" circles while breathing in and out;
+	// "free" flies between random places and angles around the whole mountain.
 	$effect(() => {
 		if (!dataReady || !map) return;
 		if (!trek.drone) {
@@ -603,6 +637,7 @@
 			return;
 		}
 		const m = map;
+		const style = trek.droneStyle;
 		stopFly();
 		stopOrbit();
 		untrack(() => {
@@ -611,6 +646,37 @@
 		});
 		m.stop();
 		const SUMMIT: [number, number] = [37.3556, -3.0675];
+
+		if (style === 'free') {
+			const spots = untrack(() => trek.places.filter((p) => p.kind !== 'lodging').map((p) => p.coordinates));
+			const rand = (a: number, b: number) => a + Math.random() * (b - a);
+			const next = () => {
+				const nearPlace = spots.length > 0 && Math.random() < 0.5;
+				const center: [number, number] = nearPlace
+					? spots[Math.floor(Math.random() * spots.length)]
+					: [SUMMIT[0] + rand(-0.09, 0.09), SUMMIT[1] + rand(-0.09, 0.09)];
+				const sweep = rand(50, 170) * (Math.random() < 0.5 ? -1 : 1);
+				m.flyTo({
+					center,
+					zoom: nearPlace ? rand(12.4, 14.2) : rand(10.4, 12.8),
+					pitch: rand(15, 74),
+					bearing: m.getBearing() + sweep,
+					duration: rand(7000, 12000),
+					curve: 1.5,
+					essential: true
+				});
+			};
+			const onEnd = () => {
+				if (trek.drone) next();
+			};
+			m.on('moveend', onEnd);
+			next();
+			return () => {
+				m.off('moveend', onEnd);
+				m.stop();
+			};
+		}
+
 		const PERIOD = 48; // seconds per zoom breath
 		m.easeTo({ center: SUMMIT, zoom: 10.2, pitch: 28, duration: 2200, essential: true });
 		let started = false;
@@ -698,14 +764,14 @@
 		bind:this={container}
 		class="size-full"
 		role="application"
-		aria-label="3D terrain map of Mount Kilimanjaro"
+		aria-label={t('map.label')}
 	></div>
 </div>
 
 {#if !dataReady}
 	<div class="absolute inset-0 grid place-items-center bg-paper-2">
 		<p class="display text-lg text-ink-soft italic">
-			{trek.status === 'error' ? `Could not load route data: ${trek.error}` : 'Loading terrain…'}
+			{trek.status === 'error' ? t('map.loadError', { error: trek.error ?? '' }) : t('map.loading')}
 		</p>
 	</div>
 {/if}
