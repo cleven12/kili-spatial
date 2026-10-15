@@ -1,0 +1,15 @@
+name: Trail or place data correction
+description: A route, camp, hut or elevation is wrong or missing
+labels: [data]
+body:
+  - type: input
+    id: item
+    attributes:
+      label: Which route or place?
+    validations: { required: true }
+  - type: textarea
+    id: fix
+    attributes:
+      label: What is wrong and what is correct?
+      description: Please say how you know. Data comes from OpenStreetMap, so fixing it there also helps everyone else.
+    validations: { required: true }

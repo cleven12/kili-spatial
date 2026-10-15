@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for helping improve KiliSpatial!
+Thanks for helping improve KiliSpatial! Please follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 1. Fork and clone, then `pnpm install` (Node 22.17+).
 2. Create a branch from `main`.
