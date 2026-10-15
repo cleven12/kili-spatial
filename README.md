@@ -90,10 +90,15 @@ Open the **GPS** panel on the map:
 - **My location** shows your real position using the browser's Geolocation API, only after you allow it. Nothing is stored or sent.
 - **GPX** exports the simulated track (one `<trk>` per day, plus the stops as waypoints).
 
+## Embedding, downloads and support
+
+- **Embed** the viewer with `<iframe src=".../embed?route=machame">` and sync it with your page via `postMessage`. See [docs/embedding.md](docs/embedding.md).
+- **Researchers** can download each route as GeoJSON or GPX from the About dialog; the raw dataset is under `/data`.
+- **Support** is by email: set `VITE_SUPPORT_EMAIL` (see `.env.example`) and an "Email a support request" button appears in the About dialog. Leave it empty to hide the section.
+- Set `VITE_EMBED_ORIGINS` and the `frame-ancestors` rule in `static/_headers` to your own domain(s) when you deploy.
+
 ## Roadmap
 
-- `/embed` mode with `postMessage` sync for use inside itinerary pages
-- Support and contact by email for travellers and researchers
 - Verified summit points (Gilman's, Stella) and more accommodation detail
 
 ## Contributing
