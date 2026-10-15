@@ -153,9 +153,12 @@ const it: Dict = {
 	'fund.mailBody':
 		'Buongiorno,\n\nvorrei sostenere KiliSpatial.\n\nNome / organizzazione:\nCome lo uso (viaggiatore, ricercatore, operatore, altro):\nCosa ho in mente:\n',
 
+	'credit.dev': 'Sviluppato da',
+	'credit.github': 'KiliSpatial su GitHub',
+
 	'about.title': 'Informazioni su KiliSpatial',
 	'about.intro':
-		'Un visualizzatore 3D open source (MIT) delle vie di trekking del Kilimangiaro, realizzato con SvelteKit, MapLibre GL JS e Flowbite Svelte.',
+		'Un visualizzatore 3D open source (AGPL-3.0) delle vie di trekking del Kilimangiaro, realizzato con SvelteKit, MapLibre GL JS e Flowbite Svelte.',
 	'about.notNavStrong': 'Non per la navigazione.',
 	'about.notNav':
 		'Gli itinerari sono quelli tipici degli operatori, la geometria dei sentieri proviene da OpenStreetMap e può avere lacune, meteo e ossigeno sono stime simulate in base all’altitudine. Affrontate il trekking con una guida autorizzata e mappe ufficiali.',

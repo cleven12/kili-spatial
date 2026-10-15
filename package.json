@@ -37,7 +37,7 @@
 		"maplibre-gl": "^6.14.0"
 	},
 	"packageManager": "pnpm@10.34.7",
-	"license": "MIT",
+	"license": "AGPL-3.0-only",
 	"description": "Open-source 3D trekking viewer for Mount Kilimanjaro's Marangu Route",
 	"keywords": "[\"kilimanjaro\",\"maplibre\",\"svelte\",\"3d-map\",\"trekking\"]"
 }

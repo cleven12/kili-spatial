@@ -153,9 +153,12 @@ const de: Dict = {
 	'fund.mailBody':
 		'Guten Tag,\n\nich möchte KiliSpatial unterstützen.\n\nName / Organisation:\nWie ich es nutze (Reisende/r, Forschung, Veranstalter, anderes):\nWas ich mir vorstelle:\n',
 
+	'credit.dev': 'Entwickelt von',
+	'credit.github': 'KiliSpatial auf GitHub',
+
 	'about.title': 'Über KiliSpatial',
 	'about.intro':
-		'Ein Open-Source-3D-Viewer (MIT) für die Trekkingrouten am Kilimandscharo, gebaut mit SvelteKit, MapLibre GL JS und Flowbite Svelte.',
+		'Ein Open-Source-3D-Viewer (AGPL-3.0) für die Trekkingrouten am Kilimandscharo, gebaut mit SvelteKit, MapLibre GL JS und Flowbite Svelte.',
 	'about.notNavStrong': 'Nicht zur Navigation.',
 	'about.notNav':
 		'Die Tagespläne sind typische Veranstalterprogramme, die Wegegeometrie stammt von OpenStreetMap und kann Lücken haben, Wetter und Sauerstoff sind aus der Höhe simulierte Schätzwerte. Trekke mit einem lizenzierten Guide und offiziellen Karten.',

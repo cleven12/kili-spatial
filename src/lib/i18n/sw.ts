@@ -153,9 +153,12 @@ const sw: Dict = {
 	'fund.mailBody':
 		'Habari,\n\nNingependa kuunga mkono KiliSpatial.\n\nJina / shirika:\nNinavyoitumia (msafiri, mtafiti, mwendeshaji, nyingine):\nNilichofikiria:\n',
 
+	'credit.dev': 'Imetengenezwa na',
+	'credit.github': 'KiliSpatial kwenye GitHub',
+
 	'about.title': 'Kuhusu KiliSpatial',
 	'about.intro':
-		'Kionyeshi huria (MIT) cha 3D cha njia za kupanda Kilimanjaro, kimejengwa kwa SvelteKit, MapLibre GL JS na Flowbite Svelte.',
+		'Kionyeshi huria (AGPL-3.0) cha 3D cha njia za kupanda Kilimanjaro, kimejengwa kwa SvelteKit, MapLibre GL JS na Flowbite Svelte.',
 	'about.notNavStrong': 'Si kwa kuongozea safari.',
 	'about.notNav':
 		'Ratiba ni za kawaida za waendeshaji, njia zinatoka OpenStreetMap na zinaweza kuwa na mapengo, na hali ya hewa na oksijeni ni makadirio kulingana na mwinuko. Panda na mwongozo mwenye leseni na ramani rasmi.',

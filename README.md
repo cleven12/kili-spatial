@@ -118,4 +118,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-Code: [MIT](LICENSE). Data in `static/data`: ODbL 1.0 (OpenStreetMap contributors).
+Code: [AGPL-3.0 with an attribution term](LICENSE): you may use, change and host it, but the "Dev by Cleven G" credit and the source licence must stay, and modified versions you host must publish their source. Data in `static/data`: ODbL 1.0 (OpenStreetMap contributors).

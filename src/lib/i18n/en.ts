@@ -152,9 +152,12 @@ const en = {
 	'fund.mailBody':
 		'Hello,\n\nI would like to support KiliSpatial.\n\nName / organisation:\nHow I use it (traveller, researcher, operator, other):\nWhat I have in mind:\n',
 
+	'credit.dev': 'Dev by',
+	'credit.github': 'KiliSpatial on GitHub',
+
 	'about.title': 'About KiliSpatial',
 	'about.intro':
-		'An open-source (MIT) 3D viewer for the Kilimanjaro trekking routes, built with SvelteKit, MapLibre GL JS and Flowbite Svelte.',
+		'An open-source (AGPL-3.0) 3D viewer for the Kilimanjaro trekking routes, built with SvelteKit, MapLibre GL JS and Flowbite Svelte.',
 	'about.notNavStrong': 'Not for navigation.',
 	'about.notNav':
 		'Itineraries are typical operator schedules, trail geometry comes from OpenStreetMap and may have gaps, and weather and oxygen are simulated estimates from altitude. Trek with a licensed guide and official maps.',
