@@ -18,4 +18,4 @@ export const EMBED_ORIGINS: string[] = [
 ];
 
 /** Author credit shown on the map itself, also when embedded. Required by the licence. */
-export const AUTHOR = { name: 'Cleven G', repo: 'https://github.com/cleven12/kili-spatial' } as const;
+export const AUTHOR = { name: '', repo: 'https://github.com/cleven12/kili-spatial' } as const;
