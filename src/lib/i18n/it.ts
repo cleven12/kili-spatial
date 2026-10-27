@@ -33,6 +33,7 @@ const it: Dict = {
 
 	'sidebar.lodging': 'Mostra alloggi vicino ai cancelli ({n})',
 	'sidebar.notNav': 'Percorsi approssimativi, non per la navigazione.',
+	'sidebar.guides': 'Guide alle vie',
 	'sidebar.about': 'Informazioni e fonti',
 
 	'place.gate': 'Cancello del parco',

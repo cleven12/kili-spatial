@@ -4,9 +4,37 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="text-scale" content="scale" />
+		<meta name="description" content="Open-source 3D terrain viewer for the Kilimanjaro trekking routes: Marangu, Machame, Lemosho, Rongai, Umbwe, Shira and the Northern Circuit. Itineraries, elevation, GPX, free." />
+		<meta name="theme-color" content="#f4eee2" />
+		<meta property="og:type" content="website" />
+		<meta property="og:site_name" content="KiliSpatial" />
+		<meta property="og:title" content="Kilimanjaro in 3D: every trekking route on real terrain" />
+		<meta property="og:description" content="Free, open-source 3D map of the Kilimanjaro routes with day-by-day itineraries, elevation, oxygen estimates and GPX. English, Kiswahili, Italiano, Français, Deutsch." />
+		<meta property="og:image" content="https://kili.xenohuru.com/og.jpg" />
+		<meta property="og:image:width" content="1200" />
+		<meta property="og:image:height" content="630" />
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content="Kilimanjaro in 3D: every trekking route on real terrain" />
+		<meta name="twitter:description" content="Free, open-source 3D map of the Kilimanjaro routes with itineraries, elevation and GPX." />
+		<meta name="twitter:image" content="https://kili.xenohuru.com/og.jpg" />
+		<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"KiliSpatial","url":"https://kili.xenohuru.com/","applicationCategory":"TravelApplication","operatingSystem":"Any (web browser)","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Open-source 3D terrain viewer for the Kilimanjaro trekking routes.","inLanguage":["en","sw","it","fr","de"],"author":{"@type":"Person","name":"Cleven G","url":"https://github.com/cleven12"},"license":"https://www.gnu.org/licenses/agpl-3.0.html","image":"https://kili.xenohuru.com/og.jpg"}</script>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">
 		<div style="display: contents">%sveltekit.body%</div>
+		<noscript>
+			<h1>KiliSpatial: Kilimanjaro trekking routes in 3D</h1>
+			<p>This interactive 3D map needs JavaScript. Route guides without it:</p>
+			<ul>
+				<li><a href="/routes/">All Kilimanjaro routes</a></li>
+				<li><a href="/routes/marangu/">Marangu</a></li>
+				<li><a href="/routes/machame/">Machame</a></li>
+				<li><a href="/routes/lemosho/">Lemosho</a></li>
+				<li><a href="/routes/rongai/">Rongai</a></li>
+				<li><a href="/routes/umbwe/">Umbwe</a></li>
+				<li><a href="/routes/northern-circuit/">Northern Circuit</a></li>
+				<li><a href="/routes/shira/">Shira</a></li>
+			</ul>
+		</noscript>
 	</body>
 </html>

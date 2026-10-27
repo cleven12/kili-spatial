@@ -33,6 +33,7 @@ const sw: Dict = {
 
 	'sidebar.lodging': 'Onyesha malazi karibu na malango ({n})',
 	'sidebar.notNav': 'Njia za makadirio, si za kuongozea safari.',
+	'sidebar.guides': 'Mwongozo wa njia',
 	'sidebar.about': 'Kuhusu na vyanzo',
 
 	'place.gate': 'Lango la hifadhi',

@@ -46,7 +46,8 @@
 
 <svelte:head>
 	<title>{trek.route ? t('site.routeTitle', { name: trek.route.name }) : t('site.kiliRoutes')} · KiliSpatial</title>
-	<meta name="description" content={t('site.description')} />
+	<link rel="canonical" href="https://kili.xenohuru.com/" />
+	<link rel="alternate" hreflang="x-default" href="https://kili.xenohuru.com/routes/" />
 </svelte:head>
 
 <main class="grid h-dvh grid-cols-1 grid-rows-[minmax(0,1fr)] {ui.toolsHidden ? '' : 'md:grid-cols-[22rem_1fr]'}">

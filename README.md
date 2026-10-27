@@ -106,7 +106,8 @@ Open the **GPS** panel on the map:
 - **Embed** the viewer with `<iframe src=".../embed?route=machame">` and sync it with your page via `postMessage`. See [docs/embedding.md](docs/embedding.md).
 - **Researchers** can download each route as GeoJSON or GPX from the About dialog; the raw dataset is under `/data`.
 - **Support** is by email: set `VITE_SUPPORT_EMAIL` (see `.env.example`) and an "Email a support request" button appears in the About dialog. Leave it empty to hide the section.
-- Set `VITE_EMBED_ORIGINS` and the `frame-ancestors` rule in `static/_headers` to your own domain(s) when you deploy.
+- Any website can embed `/embed` by default. To restrict who may control it, set `VITE_EMBED_ORIGINS` (see `docs/embedding.md`).
+- `pnpm build` also generates crawlable guide pages in five languages, a sitemap and `robots.txt` (`scripts/seo.mjs`). Set `SITE_URL` if you host on another domain.
 
 ## Roadmap
 

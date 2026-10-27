@@ -33,6 +33,7 @@ const de: Dict = {
 
 	'sidebar.lodging': 'Unterkünfte an den Gates zeigen ({n})',
 	'sidebar.notNav': 'Ungefähre Routen, nicht zur Navigation.',
+	'sidebar.guides': 'Routenführer',
 	'sidebar.about': 'Über das Projekt und Quellen',
 
 	'place.gate': 'Parktor',

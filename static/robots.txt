@@ -1,3 +1,5 @@
-# allow crawling everything by default
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /embed
+
+Sitemap: https://kili.xenohuru.com/sitemap.xml

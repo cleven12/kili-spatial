@@ -20,6 +20,10 @@
 		</Toggle>
 		<div class="mt-2"><LanguagePicker /></div>
 		<p class="mt-2">
+			<!-- Plain link to the static guide pages (not an app route), so reload. -->
+			<a href={i18n.lang === 'en' ? '/routes/' : `/${i18n.lang}/routes/`} data-sveltekit-reload class="underline decoration-rule underline-offset-4 hover:text-ochre">{t('sidebar.guides')}</a>
+		</p>
+		<p class="mt-2">
 			{t('sidebar.notNav')}
 			<button
 				type="button"

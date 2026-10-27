@@ -32,6 +32,7 @@ const en = {
 
 	'sidebar.lodging': 'Show lodging near the gates ({n})',
 	'sidebar.notNav': 'Approximate routes, not for navigation.',
+	'sidebar.guides': 'Route guides',
 	'sidebar.about': 'About and sources',
 
 	'place.gate': 'Park gate',

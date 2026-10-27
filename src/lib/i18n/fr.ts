@@ -33,6 +33,7 @@ const fr: Dict = {
 
 	'sidebar.lodging': 'Afficher les hébergements près des portes ({n})',
 	'sidebar.notNav': 'Tracés approximatifs, pas pour la navigation.',
+	'sidebar.guides': 'Guides des voies',
 	'sidebar.about': 'À propos et sources',
 
 	'place.gate': 'Porte du parc',
