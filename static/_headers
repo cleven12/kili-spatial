@@ -1,8 +1,8 @@
 # Cloudflare headers. Embedding is allowed only from the sites listed in frame-ancestors.
 /embed
-  Content-Security-Policy: frame-ancestors 'self' https://xenohuru.com https://www.xenohuru.com
+  Content-Security-Policy: frame-ancestors 'self' https://xenohuru.com https://www.xenohuru.com https://visitkili.com https://www.visitkili.com
 /embed/*
-  Content-Security-Policy: frame-ancestors 'self' https://xenohuru.com https://www.xenohuru.com
+  Content-Security-Policy: frame-ancestors 'self' https://xenohuru.com https://www.xenohuru.com https://visitkili.com https://www.visitkili.com
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
