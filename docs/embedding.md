@@ -25,12 +25,16 @@ The viewer is responsive to the iframe's own size: day chips scroll, and the pro
 | `chart` | `0` | Hide the elevation profile |
 | `days` | `0` | Hide the day chips |
 
-## Allowing your site
+## Who may embed it
 
-Two things need your domain, both set at deploy time:
+**Any website.** The deployed viewer sends no framing restriction for `/embed`, and by default it accepts postMessage commands from any parent page. The viewer shows no private data, and it only replies to the parent's own origin, never to `*`.
 
-1. **Who may frame the viewer.** Edit `static/_headers` (`frame-ancestors`). Without a matching rule browsers still allow framing on hosts that do not send the header, so set it.
-2. **Who may control it.** Set `VITE_EMBED_ORIGINS=https://yoursite.com` when building (see `.env.example`). The viewer only accepts messages from its direct parent whose origin is on that list, and only replies to that origin.
+To limit control to certain sites, set `VITE_EMBED_ORIGINS=https://yoursite.com,https://www.yoursite.com` when building (see `.env.example`). Other pages can still show the map, but their commands are ignored. To also forbid framing by other sites, add to `static/_headers`:
+
+```
+/embed
+  Content-Security-Policy: frame-ancestors 'self' https://yoursite.com
+```
 
 ## postMessage API
 

@@ -1,13 +1,13 @@
-import { EMBED_ORIGINS } from '#lib/config.ts';
+import { embedAllowed } from '#lib/config.ts';
 import { i18n, LANGS, type Lang } from '#lib/i18n/index.svelte.ts';
 import { trek } from '#lib/state/trek.svelte.ts';
 
 /**
  * postMessage API between the embedded viewer and its host page.
  * Every message carries `source: 'kilispatial'` and `version: 1`.
- * Messages are only accepted from the direct parent window, and only when its
- * origin is on the allowlist (VITE_EMBED_ORIGINS). The viewer only replies to
- * that origin, never to '*'.
+ * Messages are only accepted from the direct parent window, and (when VITE_EMBED_ORIGINS
+ * lists origins) only from those origins; by default any site may embed. The viewer only
+ * replies to the parent's own origin, never to '*'.
  */
 export const PROTOCOL = { source: 'kilispatial', version: 1 } as const;
 
@@ -62,7 +62,7 @@ function guessParentOrigin(): string | null {
 		/* ignore */
 	}
 	const candidate = fromAncestors || ref;
-	return candidate && EMBED_ORIGINS.includes(candidate) ? candidate : null;
+	return candidate && embedAllowed(candidate) ? candidate : null;
 }
 
 export function apply(cmd: Command) {
@@ -108,7 +108,7 @@ export function startBridge() {
 	};
 
 	const onMessage = (e: MessageEvent) => {
-		if (!inFrame || e.source !== window.parent || !EMBED_ORIGINS.includes(e.origin)) return;
+		if (!inFrame || e.source !== window.parent || !embedAllowed(e.origin)) return;
 		if (!isCommand(e.data)) return;
 		parentOrigin = e.origin;
 		apply(e.data);
