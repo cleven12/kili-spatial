@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Heart, Music, Palette, PanelTopClose, Plane, Satellite, Shuffle, Type, VolumeX } from 'lucide-svelte';
+	import { Heart, Music, Palette, PanelTopClose, Plane, Satellite, Shuffle, Sparkles, Type, VolumeX } from 'lucide-svelte';
 	import { t } from '#lib/i18n/index.svelte.ts';
 	import { gps } from '#lib/state/gps.svelte.ts';
 	import { trek } from '#lib/state/trek.svelte.ts';
@@ -41,6 +41,16 @@
 		</button>
 		<button type="button" class="{base} {idle}" title={t('view.hideTools')} aria-label={t('view.hideTools')} onclick={() => ui.toggleTools()}>
 			<PanelTopClose class="size-4" aria-hidden="true" />
+		</button>
+		<button
+			type="button"
+			class="{base} {ui.theme === 'medium' ? 'border-sky-600 bg-sky-100 text-sky-800' : idle}"
+			title="Toggle Theme: Medium (Azure) / Field (Warm Paper)"
+			aria-label="Toggle Theme"
+			onclick={() => ui.toggleTheme()}
+		>
+			<Sparkles class="size-4" aria-hidden="true" />
+			<span class="max-sm:sr-only">{ui.theme === 'medium' ? 'Medium' : 'Field'}</span>
 		</button>
 		<a href="/design" class="{base} {idle}" title="Stylescape & UI System" aria-label="Stylescape & UI System">
 			<Palette class="size-4" aria-hidden="true" /> <span class="max-sm:sr-only">Design</span>

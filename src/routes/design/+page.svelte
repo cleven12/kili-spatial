@@ -57,6 +57,9 @@
 	let inquiryRoute = $state<string>('Marangu Route (5-6 Days)');
 	let inquirySubmitted = $state<boolean>(false);
 
+	// Selected Route for Stage Breakdown
+	let selectedRouteId = $state<string>('marangu');
+
 	// SVG Copied Toast
 	let copiedSvgToast = $state<string | null>(null);
 
@@ -730,7 +733,18 @@
 			<!-- Routes Cards Grid -->
 			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
 				{#each officialRoutes as r}
-					<div class="rounded-sm border border-rule bg-paper p-5 flex flex-col justify-between hover:border-ink transition-all shadow-xs space-y-4">
+					<div
+						role="button"
+						tabindex="0"
+						class="rounded-sm border {selectedRouteId === r.id ? 'border-sky-600 ring-2 ring-sky-600/20 bg-sky-50/20' : 'border-rule bg-paper'} p-5 flex flex-col justify-between hover:border-ink transition-all shadow-xs space-y-4 cursor-pointer text-left"
+						onclick={() => (selectedRouteId = r.id)}
+						onkeydown={(e) => {
+							if (e.key === 'Enter' || e.key === ' ') {
+								e.preventDefault();
+								selectedRouteId = r.id;
+							}
+						}}
+					>
 						<div class="space-y-2">
 							<div class="flex items-start justify-between gap-2">
 								<div>
@@ -758,20 +772,63 @@
 
 						<div class="pt-3 border-t border-rule flex items-center justify-between">
 							<span class="text-[11px] text-ink-soft font-medium">{r.accommodation}</span>
-							<button
-								type="button"
-								onclick={() => {
-									inquiryRoute = `${r.name} (${r.duration})`;
-									inquiryModalOpen = true;
-								}}
-								class="inline-flex items-center gap-1 text-xs font-bold text-ochre hover:text-primary-700"
-							>
-								Inquire <ChevronRight class="size-3.5" />
-							</button>
+							<div class="flex items-center gap-2">
+								<button
+									type="button"
+									onclick={(e) => {
+										e.stopPropagation();
+										inquiryRoute = `${r.name} (${r.duration})`;
+										inquiryModalOpen = true;
+									}}
+									class="inline-flex items-center gap-1 text-xs font-bold text-ochre hover:text-primary-700"
+								>
+									Inquire <ChevronRight class="size-3.5" />
+								</button>
+							</div>
 						</div>
 					</div>
 				{/each}
 			</div>
+
+			<!-- Dynamic Route Stages Breakdown for Selected Route -->
+			{#if dataset && dataset.routes[selectedRouteId]}
+				{@const activeRoute = dataset.routes[selectedRouteId]}
+				<div class="rounded-sm border border-rule bg-paper p-5 sm:p-6 space-y-4 shadow-xs">
+					<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-rule pb-3">
+						<div>
+							<div class="flex items-center gap-2">
+								<span class="text-[10px] uppercase font-bold text-sky-700 font-mono tracking-wider">Itinerary Stage Breakdown</span>
+								<span class="text-[10px] bg-paper-2 border border-rule px-2 py-0.5 rounded-xs font-mono">{activeRoute.days.length} Days</span>
+							</div>
+							<h3 class="display text-xl font-bold mt-0.5">{activeRoute.name} Elevation Itinerary</h3>
+						</div>
+
+						<a
+							href="/?route={selectedRouteId}"
+							class="inline-flex items-center gap-2 rounded-xs bg-sky-600 px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-sky-700 transition-colors"
+						>
+							<Mountain class="size-4" /> Launch 3D Terrain Flight →
+						</a>
+					</div>
+
+					<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+						{#each activeRoute.days as d}
+							<div class="rounded-xs border border-rule bg-paper-2 p-3 space-y-2">
+								<div class="flex items-center justify-between">
+									<span class="font-bold text-xs font-mono text-ink">Day {d.day}</span>
+									<span class="text-[10px] font-mono text-ink-soft">{d.distanceKm.toFixed(1)} km</span>
+								</div>
+								<div class="font-semibold text-xs leading-snug">{d.title}</div>
+								<div class="grid grid-cols-2 gap-1 text-[10px] font-mono border-t border-rule/60 pt-1.5 text-ink-soft">
+									<div>▲ +{d.ascentM}m</div>
+									<div>▼ -{d.descentM}m</div>
+									<div class="col-span-2">End: {d.endElevation.toLocaleString()}m</div>
+								</div>
+							</div>
+						{/each}
+					</div>
+				</div>
+			{/if}
 
 			<!-- 5 Altitude Ecological Zones Strip -->
 			<div class="rounded-sm border border-rule bg-paper p-5 space-y-4">
@@ -789,6 +846,95 @@
 							<p class="text-[11px] text-ink-soft leading-tight">{z.desc}</p>
 						</div>
 					{/each}
+				</div>
+			</div>
+
+			<!-- Alpine Gear Checklist & Acclimatization Safety Matrix -->
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+				<!-- Card 1: Official Expedition Gear Checklist -->
+				<div class="rounded-sm border border-rule bg-paper p-5 space-y-3">
+					<div class="flex items-center gap-2 border-b border-rule pb-2">
+						<KiliIcons name="backpack" style="linear" size={24} class="text-ochre" />
+						<div>
+							<h4 class="font-bold text-sm">Essential Expedition Gear Guide</h4>
+							<span class="text-[10px] text-ink-soft">Categorized for Arctic Summit Conditions (-15°C)</span>
+						</div>
+					</div>
+
+					<div class="space-y-2.5 text-xs">
+						<div class="rounded-xs border border-rule/60 bg-paper-2 p-2.5 space-y-1">
+							<div class="font-semibold text-ink flex items-center gap-1.5">
+								<span class="size-1.5 rounded-full bg-ochre"></span> Layer 1 & 2: Base & Mid Thermal
+							</div>
+							<p class="text-[11px] text-ink-soft">Merino wool thermal tops and bottoms (non-cotton), mid-weight polartec fleece jacket, breathable moisture-wicking shirts.</p>
+						</div>
+
+						<div class="rounded-xs border border-rule/60 bg-paper-2 p-2.5 space-y-1">
+							<div class="font-semibold text-ink flex items-center gap-1.5">
+								<span class="size-1.5 rounded-full bg-sky-600"></span> Layer 3 & 4: Insulation & Outer Shell
+							</div>
+							<p class="text-[11px] text-ink-soft">800-fill goose down expedition parka with hood, Gore-Tex waterproof breathable rain jacket and pants with taped seams.</p>
+						</div>
+
+						<div class="rounded-xs border border-rule/60 bg-paper-2 p-2.5 space-y-1">
+							<div class="font-semibold text-ink flex items-center gap-1.5">
+								<span class="size-1.5 rounded-full bg-secondary-700"></span> Technical Footwear & Hands
+							</div>
+							<p class="text-[11px] text-ink-soft">High-ankle waterproof broken-in boots, breathable scree gaiters, 4x merino hiking socks, windproof mittens and inner liner gloves.</p>
+						</div>
+
+						<div class="rounded-xs border border-rule/60 bg-paper-2 p-2.5 space-y-1">
+							<div class="font-semibold text-ink flex items-center gap-1.5">
+								<span class="size-1.5 rounded-full bg-ink"></span> Summit Night Criticals
+							</div>
+							<p class="text-[11px] text-ink-soft">200+ lumen headlamp with spare cold-resistant lithium batteries, UV400 glacier sunglasses, insulated thermos flask for water.</p>
+						</div>
+					</div>
+				</div>
+
+				<!-- Card 2: High-Altitude Acclimatization & AMS Protocol -->
+				<div class="rounded-sm border border-rule bg-paper p-5 space-y-3">
+					<div class="flex items-center gap-2 border-b border-rule pb-2">
+						<KiliIcons name="gauge" style="linear" size={24} class="text-sky-600" />
+						<div>
+							<h4 class="font-bold text-sm">Altitude Acclimatization (AMS) Protocol</h4>
+							<span class="text-[10px] text-ink-soft">TANAPA Guidelines & Lake Louise Score</span>
+						</div>
+					</div>
+
+					<div class="space-y-2.5 text-xs">
+						<div class="rounded-xs border border-rule/60 bg-paper-2 p-2.5 space-y-1">
+							<div class="font-semibold text-ink flex items-center justify-between">
+								<span>"Pole, Pole" (Slowly, Slowly)</span>
+								<span class="font-mono text-[10px] text-sky-700 font-bold">&lt; 3.0 km/h</span>
+							</div>
+							<p class="text-[11px] text-ink-soft">Keeping a steady, conversational pace minimizes anaerobic respiration and prevents lactic acid build-up above 3,500m.</p>
+						</div>
+
+						<div class="rounded-xs border border-rule/60 bg-paper-2 p-2.5 space-y-1">
+							<div class="font-semibold text-ink flex items-center justify-between">
+								<span>Daily Hydration Requirement</span>
+								<span class="font-mono text-[10px] text-emerald-700 font-bold">4 - 5 Litres / Day</span>
+							</div>
+							<p class="text-[11px] text-ink-soft">Hyperventilation in dry alpine air causes accelerated fluid loss. Adequate hydration accelerates altitude adaptation.</p>
+						</div>
+
+						<div class="rounded-xs border border-rule/60 bg-paper-2 p-2.5 space-y-1">
+							<div class="font-semibold text-ink flex items-center justify-between">
+								<span>"Climb High, Sleep Low"</span>
+								<span class="font-mono text-[10px] text-ochre font-bold">Lava Tower (4,630m)</span>
+							</div>
+							<p class="text-[11px] text-ink-soft">Ascending to Lava Tower for lunch then descending to Barranco Camp (3,950m) stimulates EPO production and yields 90%+ success.</p>
+						</div>
+
+						<div class="rounded-xs border border-rose-200 bg-rose-50/50 p-2.5 space-y-1">
+							<div class="font-semibold text-rose-900 flex items-center justify-between">
+								<span>Mandatory Emergency Descent</span>
+								<span class="font-mono text-[10px] text-rose-700 font-bold">Immediate &gt; 500m</span>
+							</div>
+							<p class="text-[11px] text-rose-800">Severe persistent headache, ataxia, or confusion indicates severe AMS or HAPE. Guides carry pulse oximeters and oxygen.</p>
+						</div>
+					</div>
 				</div>
 			</div>
 		</section>
