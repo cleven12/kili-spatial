@@ -6,10 +6,19 @@ class UiState {
 	toolsHidden = $state(false);
 	/** Larger text everywhere, for projectors and conference screens. */
 	bigText = $state(false);
+	/** Stylescape Theme: 'medium' (Modern Explorer with Azure skies) or 'field' (traditional paper/ochre). */
+	theme = $state<'medium' | 'field'>('medium');
 	gpsOpen = $state(false);
 	fundOpen = $state(false);
 	music = $state(false);
 	private beat: Beat | null = null;
+
+	toggleTheme() {
+		this.theme = this.theme === 'medium' ? 'field' : 'medium';
+		if (typeof document !== 'undefined') {
+			document.documentElement.dataset.theme = this.theme;
+		}
+	}
 
 	toggleTools() {
 		this.toolsHidden = !this.toolsHidden;

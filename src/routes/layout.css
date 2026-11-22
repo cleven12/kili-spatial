@@ -62,6 +62,16 @@
 	--color-construct-black: #11100e;
 }
 
+/* Medium Direction: Modern Explorer & Azure Skies Theme Override */
+html[data-theme='medium'] {
+	--color-paper: #f8fafc;
+	--color-paper-2: #f1f5f9;
+	--color-rule: #cbd5e1;
+	--color-ink: #0f172a;
+	--color-ink-soft: #475569;
+	--color-ochre: #0284c7;
+}
+
 html,
 body {
 	height: 100%;
