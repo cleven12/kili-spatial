@@ -4,14 +4,14 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
-		"dev": "vite dev",
-		"build": "node scripts/seo.mjs && vite build",
-		"preview": "vite preview",
-		"prepare": "svelte-kit sync || echo ''",
-		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-		"build:data": "node scripts/build-data.mjs",
-		"seo": "node scripts/seo.mjs"
+		"dev": "bun node_modules/vite/bin/vite.js dev",
+		"build": "bun scripts/seo.mjs && bun node_modules/vite/bin/vite.js build",
+		"preview": "bun node_modules/vite/bin/vite.js preview",
+		"prepare": "bun node_modules/@sveltejs/kit/svelte-kit.js sync",
+		"check": "bun node_modules/@sveltejs/kit/svelte-kit.js sync && bun node_modules/svelte-check/bin/svelte-check --tsconfig ./tsconfig.json",
+		"check:watch": "bun node_modules/@sveltejs/kit/svelte-kit.js sync && bun node_modules/svelte-check/bin/svelte-check --tsconfig ./tsconfig.json --watch",
+		"build:data": "bun scripts/build-data.mjs",
+		"seo": "bun scripts/seo.mjs"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-static": "^4.0.0",
@@ -37,7 +37,7 @@
 		"lucide-svelte": "^1.0.1",
 		"maplibre-gl": "^6.14.0"
 	},
-	"packageManager": "pnpm@10.34.7",
+	"packageManager": "bun@1.4.3",
 	"license": "AGPL-3.0-only",
 	"description": "Open-source 3D trekking viewer for Mount Kilimanjaro's Marangu Route",
 	"keywords": [
